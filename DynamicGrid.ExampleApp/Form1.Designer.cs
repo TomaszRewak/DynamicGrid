@@ -29,13 +29,31 @@ namespace DynamicGrid.ExampleApp
 		/// </summary>
 		private void InitializeComponent()
 		{
-			this.components = new System.ComponentModel.Container();
+			this.grid1 = new DynamicGrid.ExampleApp.MyGrid();
+			this.SuspendLayout();
+			// 
+			// grid1
+			// 
+			this.grid1.Location = new System.Drawing.Point(12, 12);
+			this.grid1.Name = "grid1";
+			this.grid1.Size = new System.Drawing.Size(776, 426);
+			this.grid1.TabIndex = 0;
+			// 
+			// Form1
+			// 
+			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(800, 450);
+			this.Controls.Add(this.grid1);
+			this.Name = "Form1";
 			this.Text = "Form1";
+			this.ResumeLayout(false);
+
 		}
 
 		#endregion
+
+		private MyGrid grid1;
 	}
 }
 
