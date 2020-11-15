@@ -25,6 +25,7 @@ namespace DynamicGrid.Buffer
 		{
 			_buffer = BufferedGraphicsManager.Current.Allocate(_grapthics);
 
+
 		}
 
 		private void AllocateBuffer()
