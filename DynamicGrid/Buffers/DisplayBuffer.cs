@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DynamicGrid.Buffer
+namespace DynamicGrid.Buffers
 {
 	internal sealed class DisplayBuffer<TRow>
 	{
@@ -23,7 +23,7 @@ namespace DynamicGrid.Buffer
 			List<IColumn<TRow>> columns,
 			Rectangle rect)
 		{
-			_buffer = BufferedGraphicsManager.Current.Allocate(_grapthics);
+			//_buffer = BufferedGraphicsManager.Current.Allocate(_grapthics);
 
 
 		}

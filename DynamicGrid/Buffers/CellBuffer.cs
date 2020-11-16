@@ -6,11 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DynamicGrid.Buffer
+namespace DynamicGrid.Buffers
 {
 	internal sealed class CellBuffer
 	{
-		private (bool Changed, Cell State)[,] _cells;
+		private (bool Changed, Cell State)[,] _cells = new (bool Changed, Cell State)[0, 0];
 
 		private int Height => _cells.GetLength(0);
 		private int Width => _cells.GetLength(1);
