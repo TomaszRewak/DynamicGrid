@@ -8,19 +8,37 @@ using System.Threading.Tasks;
 
 namespace DynamicGrid.Buffers
 {
-	internal sealed class Buffer
+	internal sealed class GridBuffer<TRow>
 	{
-		private (bool Changed, Cell State)[,] _cells = new (bool Changed, Cell State)[0, 0];
-		private BufferedGraphics _graphics;
+		private readonly CellBuffer _cellBuffer;
+		private readonly DisplayBuffer<TRow> _displayBuffer;
 
-		public Buffer()
+		public GridBuffer(IntPtr graphics)
 		{
-			_graphics.Graphics.GetHdc();
-			_graphics.
+			_cellBuffer = new CellBuffer();
+			_displayBuffer = new DisplayBuffer<TRow>(graphics);
 		}
 
-		public Rectangle Update<TRow>(ReadOnlySpan<IColumn<TRow>> columns, ReadOnlySpan<TRow> rows)
+		public Rectangle Update(ReadOnlySpan<IColumn<TRow>> columns, ReadOnlySpan<TRow> rows)
 		{
+			var columnIndex = 0;
+			var columnOffset = 0;
+
+			foreach (var column in columns)
+			{
+				var rowIndex = 0;
+				var rowOffset = 0;
+
+				foreach (var row in rows)
+				{
+					var cell = column.GetValue(row);
+					var changed = _cellBuffer.TrySet(rowIndex, columnIndex, in cell);
+
+					if (changed)
+						_displayBuffer.Draw()
+				}
+			}
+
 			Debug.Assert(_cells.GetLength(0) >= rows.Length);
 			Debug.Assert(_cells.GetLength(1) >= columns.Length);
 
