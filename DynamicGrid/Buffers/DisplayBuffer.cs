@@ -23,10 +23,12 @@ namespace DynamicGrid.Buffers
 			_bufferHdc = _buffer.Graphics.GetHdc();
 		}
 
-		public void Draw(int x, int y, in Cell cell)
+		public void Draw(int x, int y, int width, int height, in Cell cell)
 		{
+			var rect = new Gdi32.RECT(x, y, x + width, y + height);
+
 			Gdi32.SetBkColor(_bufferHdc, cell.Color.ToArgb());
-			Gdi32.TextOut(_bufferHdc, )
+			Gdi32.ExtTextOut(_bufferHdc, x, y, Gdi32.ETOOptions.CLIPPED, ref rect, cell.Text, (uint)cell.Text.Length, IntPtr.Zero);
 		}
 
 		private void AllocateBuffer()

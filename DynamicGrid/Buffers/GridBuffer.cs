@@ -21,8 +21,16 @@ namespace DynamicGrid.Buffers
 
 		public Rectangle Update(ReadOnlySpan<IColumn<TRow>> columns, ReadOnlySpan<TRow> rows)
 		{
+			const int rowHeight = 20;
+			const int columnWidth = 70;
+
 			var columnIndex = 0;
 			var columnOffset = 0;
+
+			int minColumnOffset = int.MaxValue,
+				maxColumnOffset = int.MinValue,
+				minRowOffset = int.MaxValue,
+				maxRowOffset = int.MinValue;
 
 			foreach (var column in columns)
 			{
@@ -35,43 +43,28 @@ namespace DynamicGrid.Buffers
 					var changed = _cellBuffer.TrySet(rowIndex, columnIndex, in cell);
 
 					if (changed)
-						_displayBuffer.Draw()
-				}
-			}
-
-			Debug.Assert(_cells.GetLength(0) >= rows.Length);
-			Debug.Assert(_cells.GetLength(1) >= columns.Length);
-
-			int minColumn = int.MaxValue,
-				maxColumn = int.MinValue,
-				minRow = int.MaxValue,
-				maxRow = int.MinValue;
-
-			for (var row = 0; row < rows.Length; row++)
-			{
-				for (var column = 0; column < columns.Length; column++)
-				{
-					var newState = columns[column].GetValue(rows[row]);
-					ref var cell = ref _cells[row, column];
-
-					cell.State = newState;
-					cell.Changed = newState != cell.State;
-
-					if (cell.Changed)
 					{
-						minColumn = Math.Min(minColumn, column);
-						maxColumn = Math.Max(maxColumn, column);
-						minRow = Math.Min(minRow, row);
-						maxRow = Math.Max(maxRow, row);
+						_displayBuffer.Draw(columnOffset, rowOffset, columnWidth, rowHeight, cell);
+
+						minColumnOffset = Math.Min(minColumnOffset, columnOffset);
+						maxColumnOffset = Math.Max(maxColumnOffset, columnOffset + columnWidth);
+						minRowOffset = Math.Min(minRowOffset, rowOffset);
+						maxRowOffset = Math.Max(maxRowOffset, rowOffset + rowHeight);
 					}
+
+					rowIndex++;
+					rowOffset += rowHeight;
 				}
+
+				columnIndex++;
+				columnOffset += columnWidth;
 			}
 
 			return new Rectangle(
-				minColumn,
-				minRow,
-				maxColumn - minColumn,
-				maxRow - minRow);
+				minColumnOffset,
+				minRowOffset,
+				maxColumnOffset - minColumnOffset,
+				maxRowOffset - minRowOffset);
 		}
 	}
 }
