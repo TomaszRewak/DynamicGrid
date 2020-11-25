@@ -10,7 +10,14 @@ namespace DynamicGrid
 	public readonly struct Cell
 	{
 		public string Text { get; }
+
 		public Color Color { get; }
+
+		public Cell(string text, Color color)
+		{
+			Text = text;
+			Color = color;
+		}
 
 		public static bool operator ==(in Cell lhs, in Cell rhs) => string.CompareOrdinal(lhs.Text, rhs.Text) == 0;
 		public static bool operator !=(in Cell lhs, in Cell rhs) => !(lhs == rhs);

@@ -19,55 +19,6 @@ namespace DynamicGrid.Buffers
 			_displayBuffer = new DisplayBuffer(graphics);
 		}
 
-		public Rectangle Update(Size size, ReadOnlySpan<IColumn<TRow>> columns, ReadOnlySpan<TRow> rows)
-		{
-			_cellBuffer.Resize(columns.Length, rows.Length);
-			_displayBuffer.Resize(size);
 
-			const int rowHeight = 20;
-			const int columnWidth = 70;
-
-			var columnIndex = 0;
-			var columnOffset = 0;
-
-			int minColumnOffset = int.MaxValue,
-				maxColumnOffset = int.MinValue,
-				minRowOffset = int.MaxValue,
-				maxRowOffset = int.MinValue;
-
-			foreach (var column in columns)
-			{
-				var rowIndex = 0;
-				var rowOffset = 0;
-
-				foreach (var row in rows)
-				{
-					var cell = column.GetValue(row);
-					var changed = _cellBuffer.TrySet(rowIndex, columnIndex, in cell);
-
-					if (changed)
-					{
-						_displayBuffer.Draw(columnOffset, rowOffset, columnWidth, rowHeight, cell);
-
-						minColumnOffset = Math.Min(minColumnOffset, columnOffset);
-						maxColumnOffset = Math.Max(maxColumnOffset, columnOffset + columnWidth);
-						minRowOffset = Math.Min(minRowOffset, rowOffset);
-						maxRowOffset = Math.Max(maxRowOffset, rowOffset + rowHeight);
-					}
-
-					rowIndex++;
-					rowOffset += rowHeight;
-				}
-
-				columnIndex++;
-				columnOffset += columnWidth;
-			}
-
-			return new Rectangle(
-				minColumnOffset,
-				minRowOffset,
-				maxColumnOffset - minColumnOffset,
-				maxRowOffset - minRowOffset);
-		}
 	}
 }

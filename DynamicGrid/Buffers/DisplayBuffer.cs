@@ -15,9 +15,7 @@ namespace DynamicGrid.Buffers
 
 		private BufferedGraphics _buffer;
 		private IntPtr _bufferHdc;
-
-		private Size _desiredSize;
-		private Size _actualSize;
+		private Size _bufferSize;
 
 		public DisplayBuffer(IntPtr mainHdc)
 		{
@@ -37,27 +35,23 @@ namespace DynamicGrid.Buffers
 
 		public void Resize(Size size)
 		{
-			if (size.Width <= _actualSize.Width && size.Height <= _actualSize.Height)
-			{
-				_desiredSize = size;
+			if (size.Width <= _bufferSize.Width && size.Height <= _bufferSize.Height)
 				return;
-			}
 
-			var newSize = new Size(
-				Math.Max(size.Width, _actualSize.Width),
-				Math.Max(size.Height, _actualSize.Height));
-			var newBuffer = BufferedGraphicsManager.Current.Allocate(_parentHdc, new Rectangle(new Point(), newSize));
+			var newBufferSize = new Size(
+				Math.Max(size.Width, _bufferSize.Width),
+				Math.Max(size.Height, _bufferSize.Height));
+			var newBuffer = BufferedGraphicsManager.Current.Allocate(_parentHdc, new Rectangle(new Point(), newBufferSize));
 			var newBufferHdc = newBuffer.Graphics.GetHdc();
 
 			if (_buffer != null)
-			{
-				Gdi32.BitBlt(newBufferHdc, 0, 0, _actualSize.Width, _actualSize.Height, _bufferHdc, 0, 0, Gdi32.TernaryRasterOperations.NONE);
-			}
+				Gdi32.BitBlt(newBufferHdc, 0, 0, _bufferSize.Width, _bufferSize.Height, _bufferHdc, 0, 0, Gdi32.TernaryRasterOperations.NONE);
 
 			Dispose();
 
 			_buffer = newBuffer;
 			_bufferHdc = newBufferHdc;
+			_bufferSize = newBufferSize;
 		}
 
 		public void Draw(int x, int y, int width, int height, in Cell cell)
@@ -70,7 +64,8 @@ namespace DynamicGrid.Buffers
 
 		public void Flush(Rectangle rectangle)
 		{
-			Gdi32.BitBlt(_parentHdc, rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, _bufferHdc, rectangle.X, rectangle.Y, Gdi32.TernaryRasterOperations.NONE);
+			if (_buffer != null)
+				Gdi32.BitBlt(_parentHdc, rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, _bufferHdc, rectangle.X, rectangle.Y, Gdi32.TernaryRasterOperations.NONE);
 		}
 	}
 }

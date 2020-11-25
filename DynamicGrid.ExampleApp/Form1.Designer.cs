@@ -29,7 +29,7 @@ namespace DynamicGrid.ExampleApp
 		/// </summary>
 		private void InitializeComponent()
 		{
-			this.grid1 = new DynamicGrid.ExampleApp.MyGrid();
+			this.grid1 = new DynamicGrid.Grid();
 			this.SuspendLayout();
 			// 
 			// grid1
@@ -53,7 +53,7 @@ namespace DynamicGrid.ExampleApp
 
 		#endregion
 
-		private MyGrid grid1;
+		private DynamicGrid.Grid grid1;
 	}
 }
 

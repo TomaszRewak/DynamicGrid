@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DynamicGrid.ExampleApp
+namespace DynamicGrid
 {
-	internal class MyGrid : Grid<Row>
+	public interface IDataSupplier
 	{
+		Cell Get(int row, int column);
 	}
 }
