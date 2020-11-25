@@ -11,16 +11,19 @@ namespace DynamicGrid.Buffers
 	internal sealed class GridBuffer<TRow>
 	{
 		private readonly CellBuffer _cellBuffer;
-		private readonly DisplayBuffer<TRow> _displayBuffer;
+		private readonly DisplayBuffer _displayBuffer;
 
 		public GridBuffer(IntPtr graphics)
 		{
 			_cellBuffer = new CellBuffer();
-			_displayBuffer = new DisplayBuffer<TRow>(graphics);
+			_displayBuffer = new DisplayBuffer(graphics);
 		}
 
-		public Rectangle Update(ReadOnlySpan<IColumn<TRow>> columns, ReadOnlySpan<TRow> rows)
+		public Rectangle Update(Size size, ReadOnlySpan<IColumn<TRow>> columns, ReadOnlySpan<TRow> rows)
 		{
+			_cellBuffer.Resize(columns.Length, rows.Length);
+			_displayBuffer.Resize(size);
+
 			const int rowHeight = 20;
 			const int columnWidth = 70;
 

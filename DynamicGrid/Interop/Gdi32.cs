@@ -17,6 +17,7 @@ namespace DynamicGrid.Interop
 
 		public enum TernaryRasterOperations : uint
 		{
+			NONE = 0x0,
 			SRCCOPY = 0x00CC0020,
 			SRCPAINT = 0x00EE0086,
 			SRCAND = 0x008800C6,

@@ -1,31 +1,37 @@
-﻿using System;
+﻿using DynamicGrid.Buffers;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace DynamicGrid
 {
 	[System.ComponentModel.DesignerCategory("")]
-	public partial class Grid<TRow> : UserControl
+	public partial class Grid : UserControl
 	{
-		public List<TRow> Rows { get; set; }
-		public List<IColumn<TRow>> Columns { get; set; }
+		private readonly CellBuffer _cellBuffer;
+		private readonly DisplayBuffer _displayBuffer;
 
 		public Grid()
 		{
 			BackColor = Color.Red;
 
-			Task.Delay(1000).ContinueWith(t =>
-			{
-				BeginInvoke(() => {
-					Trace.WriteLine("a");
-					Invalidate(new Rectangle(50, 50, 50, 50));
-					Invalidate(new Rectangle(100, 100, 50, 50));
-					Trace.WriteLine("b");
-				});
-			});
+			_gridBuffer = new DisplayBuffer<TRow>();
+
+			_gridBuffer = new GridBuffer<TRow>(Handle);
+		}
+
+		public void Flush()
+		{
+			var rect = _gridBuffer.Update(
+				Size,
+				CollectionsMarshal.AsSpan(Columns),
+				CollectionsMarshal.AsSpan(Rows));
+
+			Invalidate(rect);
 		}
 
 		protected override void OnPaint(PaintEventArgs e)

@@ -14,5 +14,9 @@ namespace DynamicGrid
 
 		public static bool operator ==(in Cell lhs, in Cell rhs) => string.CompareOrdinal(lhs.Text, rhs.Text) == 0;
 		public static bool operator !=(in Cell lhs, in Cell rhs) => !(lhs == rhs);
+
+		public override bool Equals(object obj) => obj is Cell cell && cell == this;
+
+		public override int GetHashCode() => throw new NotImplementedException();
 	}
 }
