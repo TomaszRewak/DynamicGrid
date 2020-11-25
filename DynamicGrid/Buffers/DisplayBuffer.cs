@@ -57,15 +57,16 @@ namespace DynamicGrid.Buffers
 		public void Draw(int x, int y, int width, int height, in Cell cell)
 		{
 			var rect = new Gdi32.RECT(x, y, x + width, y + height);
+			var color = (((cell.Color.B << 1) | cell.Color.G) << 1) | cell.Color.R;
 
-			Gdi32.SetBkColor(_bufferHdc, cell.Color.ToArgb());
+			Gdi32.SetBkColor(_bufferHdc, color);
 			Gdi32.ExtTextOut(_bufferHdc, x, y, Gdi32.ETOOptions.CLIPPED, ref rect, cell.Text, (uint)cell.Text.Length, IntPtr.Zero);
 		}
 
 		public void Flush(Rectangle rectangle)
 		{
 			if (_buffer != null)
-				Gdi32.BitBlt(_parentHdc, rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, _bufferHdc, rectangle.X, rectangle.Y, Gdi32.TernaryRasterOperations.NONE);
+				Gdi32.BitBlt(_parentHdc, rectangle.X, rectangle.Y, 100/*rectangle.Width*/, 100/*rectangle.Height*/, _bufferHdc, rectangle.X, rectangle.Y, Gdi32.TernaryRasterOperations.SRCCOPY);
 		}
 	}
 }
