@@ -15,6 +15,9 @@ namespace DynamicGrid.Interop
 		[return: MarshalAs(UnmanagedType.Bool)]
 		public static extern bool BitBlt([In] IntPtr hdc, int nXDest, int nYDest, int nWidth, int nHeight, [In] IntPtr hdcSrc, int nXSrc, int nYSrc, TernaryRasterOperations dwRop);
 
+		[DllImport("gdi32.dll")]
+		public static extern uint SetTextAlign(IntPtr hdc, Alignment fMode);
+
 		public enum TernaryRasterOperations : uint
 		{
 			NONE = 0x0,
@@ -47,6 +50,18 @@ namespace DynamicGrid.Interop
 			OPAQUE = 0x2,
 			PDY = 0x2000,
 			RTLREADING = 0x800,
+		}
+
+		[Flags]
+		public enum Alignment : uint
+		{
+			TA_LEFT = 0,
+			TA_RIGHT = 2,
+			TA_CENTER = 6,
+
+			TA_TOP = 0,
+			TA_BOTTOM = 8,
+			TA_BASELINE = 24
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
