@@ -11,15 +11,19 @@ namespace DynamicGrid.Buffers
 {
 	internal sealed class DisplayBuffer : IDisposable
 	{
+#pragma warning disable IDE0052 // we cannot allow for the Graphics object to be collected as then the associated HDC will get invalidated
+		private readonly Graphics _parent;
+#pragma warning restore IDE0052
 		private readonly IntPtr _parentHdc;
 
 		private BufferedGraphics _buffer;
 		private IntPtr _bufferHdc;
 		private Size _bufferSize;
 
-		public DisplayBuffer(IntPtr mainHdc)
+		public DisplayBuffer(Graphics parent)
 		{
-			_parentHdc = mainHdc;
+			_parent = parent;
+			_parentHdc = parent.GetHdc();
 		}
 
 		public void Dispose()

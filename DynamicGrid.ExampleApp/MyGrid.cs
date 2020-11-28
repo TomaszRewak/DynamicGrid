@@ -21,7 +21,7 @@ namespace DynamicGrid.ExampleApp
 			};
 
 			_ = new DispatcherTimer(
-				TimeSpan.FromMilliseconds(10),
+				TimeSpan.FromMilliseconds(1),
 				DispatcherPriority.Background,
 				(e, a) => InvalidateData(),
 				Dispatcher.CurrentDispatcher);

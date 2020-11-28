@@ -43,7 +43,7 @@ namespace DynamicGrid
 			BackColor = Color.BlueViolet;
 
 			_cellBuffer = new CellBuffer();
-			_displayBuffer = new DisplayBuffer(CreateGraphics().GetHdc());
+			_displayBuffer = new DisplayBuffer(CreateGraphics());
 		}
 
 		public void InvalidateData()
