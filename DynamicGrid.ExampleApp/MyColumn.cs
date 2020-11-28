@@ -7,11 +7,14 @@ using System.Threading.Tasks;
 
 namespace DynamicGrid.ExampleApp
 {
-	class DataSupplier : IDataSupplier
+	internal class MyColumn : Column<MyRow>
 	{
-		public Cell Get(int row, int column)
+		public MyColumn() : base("my column")
+		{ }
+
+		public override Cell GetCell(MyRow row)
 		{
-			return new Cell($"{row}:{column}", Color.Red);
+			return new Cell("aaa", Color.Red);
 		}
 	}
 }

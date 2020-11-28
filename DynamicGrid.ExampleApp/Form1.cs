@@ -16,11 +16,5 @@ namespace DynamicGrid.ExampleApp
 		{
 			InitializeComponent();
 		}
-
-		public IDataSupplier DataSupplier
-		{
-			get => grid1.DataSupplier;
-			set => grid1.DataSupplier = value;
-		}
 	}
 }

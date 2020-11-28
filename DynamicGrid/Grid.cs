@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -10,19 +11,29 @@ using System.Windows.Forms;
 namespace DynamicGrid
 {
 	[System.ComponentModel.DesignerCategory("")]
-	public partial class Grid : UserControl
+	public partial class Grid<TRow> : UserControl
 	{
 		private readonly CellBuffer _cellBuffer;
 		private readonly DisplayBuffer _displayBuffer;
 
-		private IDataSupplier _dataSupplier;
-		public IDataSupplier DataSupplier
+		private Column<TRow>[] _columns = Array.Empty<Column<TRow>>();
+		public Column<TRow>[] Columns
 		{
-			get => _dataSupplier;
+			get => _columns;
 			set
 			{
-				_dataSupplier = value;
+				_columns = value.ToArray();
+				InvalidateData();
+			}
+		}
 
+		private IRowSupplier<TRow> _rowSupplier;
+		public IRowSupplier<TRow> RowSupplier
+		{
+			get => _rowSupplier;
+			set
+			{
+				_rowSupplier = value;
 				InvalidateData();
 			}
 		}
@@ -37,7 +48,7 @@ namespace DynamicGrid
 
 		public void InvalidateData()
 		{
-			if (DataSupplier == null) return;
+			if (RowSupplier == null) return;
 
 			const int rowHeight = 20;
 			const int columnWidth = 70;
@@ -50,12 +61,15 @@ namespace DynamicGrid
 				minRowOffset = int.MaxValue,
 				maxRowOffset = int.MinValue;
 
-			for (int row = 0, rowOffset = 0; rowOffset < Height; row++, rowOffset += rowHeight)
+			for (int rowIndex = 0, rowOffset = 0; rowOffset < Height; rowIndex++, rowOffset += rowHeight)
 			{
-				for (int column = 0, columnOffset = 0; columnOffset < Width; column++, columnOffset += columnWidth)
+				var row = RowSupplier.Get(rowIndex);
+
+				for (int columnIndex = 0, columnOffset = 0; columnOffset < Width && columnIndex < Columns.Length; columnIndex++, columnOffset += columnWidth)
 				{
-					var cell = DataSupplier.Get(row, column);
-					var changed = _cellBuffer.TrySet(row, column, in cell);
+					var column = Columns[columnIndex];
+					var cell = column.GetCell(row);
+					var changed = _cellBuffer.TrySet(rowIndex, columnIndex, in cell);
 
 					if (changed)
 					{
@@ -81,11 +95,6 @@ namespace DynamicGrid
 			base.OnPaint(e);
 
 			_displayBuffer.Flush(e.ClipRectangle);
-		}
-
-		private void BeginInvoke(Action p)
-		{
-			base.BeginInvoke(p);
 		}
 	}
 }
