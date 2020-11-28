@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace DynamicGrid.ExampleApp
 {
@@ -18,6 +19,12 @@ namespace DynamicGrid.ExampleApp
 				new MyColumn(),
 				new MyColumn()
 			};
+
+			_ = new DispatcherTimer(
+				TimeSpan.FromMilliseconds(10),
+				DispatcherPriority.Background,
+				(e, a) => InvalidateData(),
+				Dispatcher.CurrentDispatcher);
 		}
 	}
 }

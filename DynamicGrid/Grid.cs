@@ -51,9 +51,8 @@ namespace DynamicGrid
 			if (RowSupplier == null) return;
 
 			const int rowHeight = 20;
-			const int columnWidth = 70;
 
-			_cellBuffer.Resize(Width / columnWidth + 1, Height / rowHeight + 1);
+			_cellBuffer.Resize(Columns.Length, Height / rowHeight + 1);
 			_displayBuffer.Resize(Size);
 
 			int minColumnOffset = int.MaxValue,
@@ -65,7 +64,7 @@ namespace DynamicGrid
 			{
 				var row = RowSupplier.Get(rowIndex);
 
-				for (int columnIndex = 0, columnOffset = 0; columnOffset < Width && columnIndex < Columns.Length; columnIndex++, columnOffset += columnWidth)
+				for (int columnIndex = 0, columnOffset = 0; columnOffset < Width && columnIndex < Columns.Length; columnOffset += Columns[columnIndex++].Width)
 				{
 					var column = Columns[columnIndex];
 					var cell = column.GetCell(row);
@@ -73,10 +72,10 @@ namespace DynamicGrid
 
 					if (changed)
 					{
-						_displayBuffer.Draw(columnOffset, rowOffset, columnWidth, rowHeight, cell);
+						_displayBuffer.Draw(columnOffset, rowOffset, column.Width, rowHeight, cell);
 
 						minColumnOffset = Math.Min(minColumnOffset, columnOffset);
-						maxColumnOffset = Math.Max(maxColumnOffset, columnOffset + columnWidth);
+						maxColumnOffset = Math.Max(maxColumnOffset, columnOffset + column.Width);
 						minRowOffset = Math.Min(minRowOffset, rowOffset);
 						maxRowOffset = Math.Max(maxRowOffset, rowOffset + rowHeight);
 					}
@@ -90,11 +89,19 @@ namespace DynamicGrid
 				maxRowOffset - minRowOffset));
 		}
 
+		protected override void OnSizeChanged(EventArgs e)
+		{
+			base.OnSizeChanged(e);
+
+			InvalidateData();
+		}
+
 		protected override void OnPaint(PaintEventArgs e)
 		{
-			base.OnPaint(e);
-
 			_displayBuffer.Flush(e.ClipRectangle);
 		}
+
+		protected override void OnPaintBackground(PaintEventArgs e)
+		{ }
 	}
 }

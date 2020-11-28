@@ -45,7 +45,7 @@ namespace DynamicGrid.Buffers
 			var newBufferHdc = newBuffer.Graphics.GetHdc();
 
 			if (_buffer != null)
-				Gdi32.BitBlt(newBufferHdc, 0, 0, _bufferSize.Width, _bufferSize.Height, _bufferHdc, 0, 0, Gdi32.TernaryRasterOperations.NONE);
+				Gdi32.BitBlt(newBufferHdc, 0, 0, _bufferSize.Width, _bufferSize.Height, _bufferHdc, 0, 0, Gdi32.TernaryRasterOperations.SRCCOPY);
 
 			Dispose();
 
@@ -67,7 +67,7 @@ namespace DynamicGrid.Buffers
 		public void Flush(Rectangle rectangle)
 		{
 			if (_buffer != null)
-				Gdi32.BitBlt(_parentHdc, rectangle.X, rectangle.Y, 500/*rectangle.Width*/, 500/*rectangle.Height*/, _bufferHdc, rectangle.X, rectangle.Y, Gdi32.TernaryRasterOperations.SRCCOPY);
+				Gdi32.BitBlt(_parentHdc, rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, _bufferHdc, rectangle.X, rectangle.Y, Gdi32.TernaryRasterOperations.SRCCOPY);
 		}
 	}
 }

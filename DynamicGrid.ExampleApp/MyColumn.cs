@@ -9,12 +9,14 @@ namespace DynamicGrid.ExampleApp
 {
 	internal class MyColumn : Column<MyRow>
 	{
-		public MyColumn() : base("my column")
+		public MyColumn() : base("my column", 100)
 		{ }
 
 		public override Cell GetCell(MyRow row)
 		{
-			return new Cell("aaa", Color.Red);
+			var now = DateTime.Now;
+
+			return new Cell($"{now.Second:D2}:{now.Millisecond:D3}", Color.Red);
 		}
 	}
 }

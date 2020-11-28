@@ -34,6 +34,7 @@ namespace DynamicGrid.ExampleApp
 			// 
 			// grid1
 			// 
+			this.grid1.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
 			this.grid1.Location = new System.Drawing.Point(12, 12);
 			this.grid1.Name = "grid1";
 			this.grid1.Size = new System.Drawing.Size(776, 426);
