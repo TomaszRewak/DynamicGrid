@@ -36,7 +36,7 @@ namespace DynamicGrid.Interop
 			DSTINVERT = 0x00550009,
 			BLACKNESS = 0x00000042,
 			WHITENESS = 0x00FF0062,
-			CAPTUREBLT = 0x40000000 //only if WinVer >= 5.0.0 (see wingdi.h)
+			CAPTUREBLT = 0x40000000
 		}
 
 		[Flags]
@@ -55,13 +55,13 @@ namespace DynamicGrid.Interop
 		[Flags]
 		public enum Alignment : uint
 		{
-			TA_LEFT = 0,
-			TA_RIGHT = 2,
-			TA_CENTER = 6,
+			LEFT = 0,
+			RIGHT = 2,
+			CENTER = 6,
 
-			TA_TOP = 0,
-			TA_BOTTOM = 8,
-			TA_BASELINE = 24
+			TOP = 0,
+			BOTTOM = 8,
+			BASELINE = 24
 		}
 
 		[StructLayout(LayoutKind.Sequential)]

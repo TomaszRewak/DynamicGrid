@@ -64,7 +64,7 @@ namespace DynamicGrid.Buffers
 			var color = (((cell.Color.B << 1) | cell.Color.G) << 1) | cell.Color.R;
 
 			Gdi32.SetBkColor(_bufferHdc, color);
-			Gdi32.SetTextAlign(_bufferHdc, Gdi32.Alignment.TA_CENTER);
+			Gdi32.SetTextAlign(_bufferHdc, Gdi32.Alignment.CENTER);
 			Gdi32.ExtTextOut(_bufferHdc, x + width / 2, y, Gdi32.ETOOptions.OPAQUE | Gdi32.ETOOptions.CLIPPED, ref rect, cell.Text, (uint)cell.Text.Length, IntPtr.Zero);
 		}
 
