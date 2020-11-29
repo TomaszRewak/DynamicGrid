@@ -68,10 +68,10 @@ namespace DynamicGrid.Buffers
 			Gdi32.ExtTextOut(_bufferHdc, x + width / 2, y, Gdi32.ETOOptions.OPAQUE | Gdi32.ETOOptions.CLIPPED, ref rect, cell.Text, (uint)cell.Text.Length, IntPtr.Zero);
 		}
 
-		public void Flush(Rectangle rectangle)
+		public void Flush(Rectangle rectangle, int offsetX)
 		{
 			if (_buffer != null)
-				Gdi32.BitBlt(_parentHdc, rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, _bufferHdc, rectangle.X, rectangle.Y, Gdi32.TernaryRasterOperations.SRCCOPY);
+				Gdi32.BitBlt(_parentHdc, rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, _bufferHdc, rectangle.X + offsetX, rectangle.Y, Gdi32.TernaryRasterOperations.SRCCOPY);
 		}
 	}
 }
