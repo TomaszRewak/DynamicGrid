@@ -86,10 +86,10 @@ namespace DynamicGrid
 
 		public Grid()
 		{
-			BackColor = Color.BlueViolet;
-
 			_cellBuffer = new CellBuffer();
 			_displayBuffer = new DisplayBuffer(CreateGraphics());
+
+			BackColor = Color.BlueViolet;
 		}
 
 		private readonly Ref<bool> _invalidateDataGuard = new();
@@ -101,7 +101,7 @@ namespace DynamicGrid
 			const int rowHeight = 20;
 
 			_cellBuffer.Resize(Columns.Length, Height / rowHeight + 1);
-			_displayBuffer.Resize(new Size(ColumnsWidth, Height));
+			_displayBuffer.Resize(new Size(Math.Max(ColumnsWidth, Width + OffsetX), Height));
 
 			int minColumnOffset = int.MaxValue,
 				maxColumnOffset = int.MinValue,
@@ -156,6 +156,13 @@ namespace DynamicGrid
 
 		protected override void OnPaintBackground(PaintEventArgs e)
 		{ }
+
+		protected override void OnBackColorChanged(EventArgs e)
+		{
+			base.OnBackColorChanged(e);
+
+			_displayBuffer.Clear(BackColor);
+		}
 
 		private int GetOffset(int column)
 		{

@@ -14,6 +14,11 @@ namespace DynamicGrid.Buffers
 		private int Height => _cells.GetLength(0);
 		private int Width => _cells.GetLength(1);
 
+		public void Clear()
+		{
+			Array.Fill(_cells, new Cell());
+		}
+
 		public void Resize(int width, int height)
 		{
 			if (width <= Width && height <= Height)

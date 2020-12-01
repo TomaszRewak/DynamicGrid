@@ -4,12 +4,14 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace DynamicGrid
 {
 	public readonly struct Cell
 	{
 		public string Text { get; }
+		//HorizontalAlignment Alignment { get; }
 
 		public Color Color { get; }
 

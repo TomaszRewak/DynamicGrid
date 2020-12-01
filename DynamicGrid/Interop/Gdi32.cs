@@ -1,24 +1,63 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 
 namespace DynamicGrid.Interop
 {
 	internal static class Gdi32
 	{
+		public static void SetBackgroundColor(IntPtr hdc, Color color)
+		{
+			var value = (((color.B << 8) | color.G) << 8) | color.R;
+			SetBkColor(hdc, value);
+		}
+
+		public static void Copy(IntPtr source, Point sourcePosition, IntPtr target, Point targetPosition, Size size)
+		{
+			BitBlt(target, targetPosition.X, targetPosition.Y, size.Width, size.Height, source, sourcePosition.X, sourcePosition.Y, TernaryRasterOperations.SRCCOPY);
+		}
+
+		public static void SetTextAlignemnt(IntPtr hdc, HorizontalAlignment alignment)
+		{
+			var value = alignment switch
+			{
+				HorizontalAlignment.Left => Alignment.LEFT,
+				HorizontalAlignment.Center => Alignment.CENTER,
+				HorizontalAlignment.Right => Alignment.RIGHT,
+				_ => throw new InvalidEnumArgumentException(nameof(alignment), (int)alignment, typeof(HorizontalAlignment))
+			};
+
+			SetTextAlign(hdc, value);
+		}
+
+		public static void PrintText(IntPtr hdc, Rectangle rectangle, Point position, string text)
+		{
+			var rect = new RECT(rectangle.X, rectangle.Y, rectangle.Right, rectangle.Bottom);
+
+			ExtTextOut(hdc, rectangle.X + position.X, rectangle.Y + position.Y, ETOOptions.OPAQUE | ETOOptions.CLIPPED, ref rect, text, (uint)text.Length, IntPtr.Zero);
+		}
+
+		public static void Fill(IntPtr hdc, Rectangle rectangle)
+		{
+			PrintText(hdc, rectangle, Point.Empty, string.Empty);
+		}
+
 		[DllImport("gdi32.dll", EntryPoint = "ExtTextOutW")]
-		public static extern bool ExtTextOut(IntPtr hdc, int X, int Y, ETOOptions fuOptions, [In] ref RECT lprc, [MarshalAs(UnmanagedType.LPWStr)] string lpString, uint cbCount, [In] IntPtr lpDx);
+		private static extern bool ExtTextOut(IntPtr hdc, int X, int Y, ETOOptions fuOptions, [In] ref RECT lprc, [MarshalAs(UnmanagedType.LPWStr)] string lpString, uint cbCount, [In] IntPtr lpDx);
 
 		[DllImport("gdi32.dll")]
-		public static extern uint SetBkColor(IntPtr hdc, int crColor);
+		private static extern uint SetBkColor(IntPtr hdc, int crColor);
 
 		[DllImport("gdi32.dll", EntryPoint = "BitBlt", SetLastError = true)]
 		[return: MarshalAs(UnmanagedType.Bool)]
-		public static extern bool BitBlt([In] IntPtr hdc, int nXDest, int nYDest, int nWidth, int nHeight, [In] IntPtr hdcSrc, int nXSrc, int nYSrc, TernaryRasterOperations dwRop);
+		private static extern bool BitBlt([In] IntPtr hdc, int nXDest, int nYDest, int nWidth, int nHeight, [In] IntPtr hdcSrc, int nXSrc, int nYSrc, TernaryRasterOperations dwRop);
 
 		[DllImport("gdi32.dll")]
-		public static extern uint SetTextAlign(IntPtr hdc, Alignment fMode);
+		private static extern uint SetTextAlign(IntPtr hdc, Alignment fMode);
 
-		public enum TernaryRasterOperations : uint
+		private enum TernaryRasterOperations : uint
 		{
 			NONE = 0x0,
 			SRCCOPY = 0x00CC0020,
@@ -40,7 +79,7 @@ namespace DynamicGrid.Interop
 		}
 
 		[Flags]
-		public enum ETOOptions : uint
+		private enum ETOOptions : uint
 		{
 			CLIPPED = 0x4,
 			GLYPH_INDEX = 0x10,
@@ -53,7 +92,7 @@ namespace DynamicGrid.Interop
 		}
 
 		[Flags]
-		public enum Alignment : uint
+		private enum Alignment : uint
 		{
 			LEFT = 0,
 			RIGHT = 2,
@@ -65,7 +104,7 @@ namespace DynamicGrid.Interop
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
-		public readonly struct RECT
+		private readonly struct RECT
 		{
 			public readonly int Left;
 			public readonly int Top;

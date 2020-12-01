@@ -20,6 +20,8 @@ namespace DynamicGrid.Buffers
 		private IntPtr _bufferHdc;
 		private Size _bufferSize;
 
+		private Color _backgroundColor;
+
 		public DisplayBuffer(Graphics parent)
 		{
 			_parent = parent;
@@ -37,19 +39,30 @@ namespace DynamicGrid.Buffers
 			_bufferHdc = IntPtr.Zero;
 		}
 
+		public void Clear(Color color)
+		{
+			_backgroundColor = color;
+
+			Gdi32.SetBackgroundColor(_bufferHdc, color);
+			Gdi32.Fill(_bufferHdc, new Rectangle(Point.Empty, _bufferSize));
+		}
+
 		public void Resize(Size size)
 		{
 			if (size.Width <= _bufferSize.Width && size.Height <= _bufferSize.Height)
 				return;
 
 			var newBufferSize = new Size(
-				Math.Max(size.Width, _bufferSize.Width),
-				Math.Max(size.Height, _bufferSize.Height));
+				Math.Max(size.Width * 2, _bufferSize.Width),
+				Math.Max(size.Height * 2, _bufferSize.Height));
 			var newBuffer = BufferedGraphicsManager.Current.Allocate(_parentHdc, new Rectangle(new Point(), newBufferSize));
 			var newBufferHdc = newBuffer.Graphics.GetHdc();
 
+			Gdi32.SetBackgroundColor(newBufferHdc, _backgroundColor);
+			Gdi32.Fill(newBufferHdc, new Rectangle(Point.Empty, newBufferSize));
+
 			if (_buffer != null)
-				Gdi32.BitBlt(newBufferHdc, 0, 0, _bufferSize.Width, _bufferSize.Height, _bufferHdc, 0, 0, Gdi32.TernaryRasterOperations.SRCCOPY);
+				Gdi32.Copy(_bufferHdc, Point.Empty, newBufferHdc, Point.Empty, _bufferSize);
 
 			Dispose();
 
@@ -60,18 +73,18 @@ namespace DynamicGrid.Buffers
 
 		public void Draw(int x, int y, int width, int height, in Cell cell)
 		{
-			var rect = new Gdi32.RECT(x, y, x + width - 1, y + height - 1);
-			var color = (((cell.Color.B << 1) | cell.Color.G) << 1) | cell.Color.R;
+			var rectangle = new Rectangle(x, y, width - 1, height - 1);
+			var position = new Point(width / 2, 0);
 
-			Gdi32.SetBkColor(_bufferHdc, color);
-			Gdi32.SetTextAlign(_bufferHdc, Gdi32.Alignment.CENTER);
-			Gdi32.ExtTextOut(_bufferHdc, x + width / 2, y, Gdi32.ETOOptions.OPAQUE | Gdi32.ETOOptions.CLIPPED, ref rect, cell.Text, (uint)cell.Text.Length, IntPtr.Zero);
+			Gdi32.SetBackgroundColor(_bufferHdc, cell.Color);
+			Gdi32.SetTextAlignemnt(_bufferHdc, HorizontalAlignment.Center);
+			Gdi32.PrintText(_bufferHdc, rectangle, position, cell.Text);
 		}
 
 		public void Flush(Rectangle rectangle, int offsetX)
 		{
 			if (_buffer != null)
-				Gdi32.BitBlt(_parentHdc, rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, _bufferHdc, rectangle.X + offsetX, rectangle.Y, Gdi32.TernaryRasterOperations.SRCCOPY);
+				Gdi32.Copy(_bufferHdc, new Point(rectangle.X + offsetX, rectangle.Y), _parentHdc, rectangle.Location, rectangle.Size);
 		}
 	}
 }
