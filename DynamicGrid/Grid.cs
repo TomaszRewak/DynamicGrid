@@ -66,7 +66,7 @@ namespace DynamicGrid
 					offset += Columns[minColumn++].Width;
 
 				var maxColumn = minColumn;
-				while (maxColumn < Columns.Length - 1 && offset < OffsetX + Width)
+				while (maxColumn < Columns.Length - 1 && offset + Columns[maxColumn].Width < OffsetX + Width)
 					offset += Columns[maxColumn++].Width;
 
 				return (minColumn, maxColumn);
@@ -115,7 +115,7 @@ namespace DynamicGrid
 			{
 				var row = RowSupplier.Get(rowIndex);
 
-				for (int columnIndex = minColumn, columnOffset = initialColumnOffset; columnOffset < Width && columnIndex <= maxColumn; columnOffset += Columns[columnIndex++].Width)
+				for (int columnIndex = minColumn, columnOffset = initialColumnOffset; columnIndex <= maxColumn; columnOffset += Columns[columnIndex++].Width)
 				{
 					var column = Columns[columnIndex];
 					var cell = column.GetCell(row);
