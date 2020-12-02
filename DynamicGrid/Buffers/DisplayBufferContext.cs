@@ -13,6 +13,9 @@ namespace DynamicGrid.Buffers
 	{
 		private readonly IntPtr _buffer;
 
+		private Color? _currentColor;
+		private HorizontalAlignment? _currentAlignemnt;
+
 		public Rectangle InvalidatedRect { get; private set; } = Rectangle.Empty;
 
 		public DisplayBufferContext(IntPtr buffer)
@@ -25,8 +28,18 @@ namespace DynamicGrid.Buffers
 			var rectangle = new Rectangle(x, y, width - 1, height - 1);
 			var position = new Point(width / 2, 0);
 
-			Gdi32.SetBackgroundColor(_buffer, cell.Color);
-			Gdi32.SetTextAlignemnt(_buffer, HorizontalAlignment.Center);
+			if (_currentColor != cell.Color)
+			{
+				_currentColor = cell.Color;
+				Gdi32.SetBackgroundColor(_buffer, cell.Color);
+			}
+
+			if (_currentAlignemnt != cell.Alignment)
+			{
+				_currentAlignemnt = cell.Alignment;
+				Gdi32.SetTextAlignemnt(_buffer, cell.Alignment);
+			}
+
 			Gdi32.PrintText(_buffer, rectangle, position, cell.Text);
 
 			InvalidatedRect = Rectangle.Union(InvalidatedRect, rectangle);

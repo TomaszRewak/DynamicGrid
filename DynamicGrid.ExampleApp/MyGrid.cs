@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,67 +10,35 @@ namespace DynamicGrid.ExampleApp
 {
 	class MyGrid : Grid<MyRow>
 	{
+		private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
+		private int _stopwatchCounter;
+
+		public double Fps { get; private set; }
+
 		public MyGrid()
 		{
 			RowSupplier = new MyRowSupplier();
-			Columns = new[] {
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn(),
-				new MyColumn()
-			};
+			Columns = Enumerable.Range(0, 100).Select(c => new MyColumn(this, c)).ToArray();
 			OffsetX = 150;
 
 			_ = new DispatcherTimer(
 				TimeSpan.FromMilliseconds(1),
 				DispatcherPriority.Background,
-				(e, a) => InvalidateData(),
+				(e, a) => Step(),
 				Dispatcher.CurrentDispatcher);
+		}
+
+		private void Step()
+		{
+			if (++_stopwatchCounter == 20)
+			{
+				Fps = 20 / _stopwatch.Elapsed.TotalSeconds;
+
+				_stopwatch.Restart();
+				_stopwatchCounter = 0;
+			}
+
+			InvalidateData();
 		}
 	}
 }

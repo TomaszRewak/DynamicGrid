@@ -4,19 +4,35 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace DynamicGrid.ExampleApp
 {
 	internal class MyColumn : Column<MyRow>
 	{
-		public MyColumn() : base("my column", 100)
-		{ }
+		private readonly MyGrid _grid;
+		private readonly int _index;
+
+		public MyColumn(MyGrid grid, int index) : base("my column", 100)
+		{
+			_grid = grid;
+			_index = index;
+		}
 
 		public override Cell GetCell(MyRow row)
 		{
+			var rowIndex = row?.Index ?? 0;
 			var now = DateTime.Now;
 
-			return new Cell($"{now.Second:D2}:{now.Millisecond:D3}", Color.Red);
+			//if (rowIndex % 10 > 1 || _index % 10 > 1)
+			//	return new Cell(Color.Gray);
+
+			var color = Color.FromArgb(
+				(int)((1 + Math.Sin((double)now.Ticks / 10000000 + _index * 0.05 + rowIndex * 0.05)) / 2 * 255),
+				(int)((1 + Math.Sin((double)now.Ticks / 20000000 + _index * 0.1 + rowIndex * 0.2)) / 2 * 255),
+				(int)((1 + Math.Sin((double)now.Ticks / 30000000 + _index * 0.5 + rowIndex * 0.05)) / 2 * 255));
+
+			return new Cell($"{_grid.Fps:####}fps {now.Millisecond:D3}", HorizontalAlignment.Center, color);
 		}
 	}
 }

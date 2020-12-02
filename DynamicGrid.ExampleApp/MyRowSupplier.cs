@@ -8,9 +8,14 @@ namespace DynamicGrid.ExampleApp
 {
 	internal class MyRowSupplier : IRowSupplier<MyRow>
 	{
+		List<MyRow> _rows = Enumerable.Range(0, 1000).Select(r => new MyRow(r)).ToList();
+
 		public MyRow Get(int row)
 		{
-			return new MyRow();
+			if (row >= 0 && row < _rows.Count)
+				return _rows[row];
+
+			return null;
 		}
 	}
 }

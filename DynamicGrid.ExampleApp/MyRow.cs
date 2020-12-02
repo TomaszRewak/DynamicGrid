@@ -8,5 +8,11 @@ namespace DynamicGrid.ExampleApp
 {
 	public class MyRow
 	{
+		public int Index { get; }
+
+		public MyRow(int index)
+		{
+			Index = index;
+		}
 	}
 }
