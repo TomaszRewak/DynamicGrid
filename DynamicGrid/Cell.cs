@@ -15,6 +15,7 @@ namespace DynamicGrid
 
 		public Color Color { get; }
 
+		public Cell(Color color) : this(string.Empty, color) { }
 		public Cell(string text, Color color)
 		{
 			Text = text;

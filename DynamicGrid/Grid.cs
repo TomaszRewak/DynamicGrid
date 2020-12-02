@@ -89,7 +89,7 @@ namespace DynamicGrid
 			_cellBuffer = new CellBuffer();
 			_displayBuffer = new DisplayBuffer(CreateGraphics());
 
-			BackColor = Color.BlueViolet;
+			BackColor = Color.DodgerBlue;
 		}
 
 		private readonly Ref<bool> _invalidateDataGuard = new();
@@ -161,7 +161,8 @@ namespace DynamicGrid
 		{
 			base.OnBackColorChanged(e);
 
-			_displayBuffer.Clear(BackColor);
+			ClearBuffers();
+			Invalidate();
 		}
 
 		private int GetOffset(int column)
@@ -170,6 +171,12 @@ namespace DynamicGrid
 			for (var c = 0; c < column; c++)
 				offset += Columns[c].Width;
 			return offset;
+		}
+
+		private void ClearBuffers()
+		{
+			_cellBuffer.Clear(BackColor);
+			_displayBuffer.Clear(BackColor);
 		}
 	}
 }

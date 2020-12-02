@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Drawing;
 
 namespace DynamicGrid.Buffers
 {
@@ -14,9 +11,11 @@ namespace DynamicGrid.Buffers
 		private int Height => _cells.GetLength(0);
 		private int Width => _cells.GetLength(1);
 
-		public void Clear()
+		public void Clear(Color color)
 		{
-			Array.Fill(_cells, new Cell());
+			for (var y = 0; y < Height; y++)
+				for (var x = 0; x < Width; x++)
+					_cells[y, x] = new Cell(color);
 		}
 
 		public void Resize(int width, int height)
