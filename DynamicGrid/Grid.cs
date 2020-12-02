@@ -110,6 +110,7 @@ namespace DynamicGrid
 
 			var (minColumn, maxColumn) = VisibleColumns;
 			var initialColumnOffset = GetOffset(minColumn);
+			var drawingContext = _displayBuffer.CreateDrawingContext();
 
 			for (int rowIndex = 0, rowOffset = 0; rowOffset < Height; rowIndex++, rowOffset += rowHeight)
 			{
@@ -123,7 +124,7 @@ namespace DynamicGrid
 
 					if (changed)
 					{
-						_displayBuffer.Draw(columnOffset, rowOffset, column.Width, rowHeight, cell);
+						drawingContext.Draw(columnOffset, rowOffset, column.Width, rowHeight, cell);
 
 						minColumnOffset = Math.Min(minColumnOffset, columnOffset);
 						maxColumnOffset = Math.Max(maxColumnOffset, columnOffset + column.Width);
@@ -133,13 +134,11 @@ namespace DynamicGrid
 				}
 			}
 
-			Trace.WriteLine($"{minColumn}:{maxColumn}");
+			var invalidatedRect = drawingContext.InvalidatedRect;
+			invalidatedRect.Offset(-OffsetX, 0);
+			Invalidate(invalidatedRect);
 
-			Invalidate(new Rectangle(
-				minColumnOffset - OffsetX,
-				minRowOffset,
-				maxColumnOffset - minColumnOffset,
-				maxRowOffset - minRowOffset));
+			Trace.WriteLine($"{minColumn}:{maxColumn} {invalidatedRect}");
 		});
 
 		protected override void OnSizeChanged(EventArgs e)

@@ -71,14 +71,9 @@ namespace DynamicGrid.Buffers
 			_bufferSize = newBufferSize;
 		}
 
-		public void Draw(int x, int y, int width, int height, in Cell cell)
+		public DisplayBufferContext CreateDrawingContext()
 		{
-			var rectangle = new Rectangle(x, y, width - 1, height - 1);
-			var position = new Point(width / 2, 0);
-
-			Gdi32.SetBackgroundColor(_bufferHdc, cell.Color);
-			Gdi32.SetTextAlignemnt(_bufferHdc, HorizontalAlignment.Center);
-			Gdi32.PrintText(_bufferHdc, rectangle, position, cell.Text);
+			return new DisplayBufferContext(_bufferHdc);
 		}
 
 		public void Flush(Rectangle rectangle, int offsetX)
