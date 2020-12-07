@@ -38,15 +38,15 @@ namespace DynamicGrid.ExampleApp
 			this.gridHeader.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
 			this.gridHeader.Location = new System.Drawing.Point(12, 12);
 			this.gridHeader.Name = "gridHeader";
-			this.gridHeader.Size = new System.Drawing.Size(776, 50);
+			this.gridHeader.Size = new System.Drawing.Size(776, 30);
 			this.gridHeader.TabIndex = 0;
 			// 
 			// grid
 			// 
 			this.grid.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-			this.grid.Location = new System.Drawing.Point(12, 62);
+			this.grid.Location = new System.Drawing.Point(12, 42);
 			this.grid.Name = "grid";
-			this.grid.Size = new System.Drawing.Size(776, 376);
+			this.grid.Size = new System.Drawing.Size(776, 396);
 			this.grid.TabIndex = 1;
 			// 
 			// Form1

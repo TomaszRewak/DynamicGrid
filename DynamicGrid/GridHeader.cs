@@ -33,10 +33,23 @@ namespace DynamicGrid
 			SplitContainer topSplitter = null;
 			foreach (var column in Columns.Reverse())
 			{
-				var splitter = new SplitContainer();
-				splitter.Panel1.Controls.Add(new Label { Text = column.Header });
+				var splitter = new SplitContainer
+				{
+					Dock = DockStyle.Fill,
+					SplitterDistance = column.Width,
+					FixedPanel = FixedPanel.Panel1
+				};
+				splitter.Panel1.Controls.Add(new Label
+				{
+					Text = column.Header,
+					BackColor = Color.MediumPurple,
+					Dock = DockStyle.Fill,
+					TextAlign = ContentAlignment.MiddleCenter,
+					Padding = Padding.Empty
+				});
 				splitter.Panel2.Controls.Add(topSplitter);
-				splitter.SplitterMoved += (o, e) => {
+				splitter.SplitterMoved += (o, e) =>
+				{
 					column.Width = splitter.SplitterDistance;
 				};
 
@@ -45,7 +58,8 @@ namespace DynamicGrid
 
 			Controls.Add(topSplitter);
 
-			topSplitter.Dock = DockStyle.Fill;
+			topSplitter.Width = int.MaxValue;
+			topSplitter.Dock = DockStyle.Left;
 
 			ResumeLayout();
 		}
