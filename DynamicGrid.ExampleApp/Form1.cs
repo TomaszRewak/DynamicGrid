@@ -15,6 +15,11 @@ namespace DynamicGrid.ExampleApp
 		public Form1()
 		{
 			InitializeComponent();
+
+			var columns = Enumerable.Range(0, 20).Select(c => new MyColumn(grid, c)).ToArray();
+
+			gridHeader.Columns = columns;
+			grid.Columns = columns;
 		}
 	}
 }

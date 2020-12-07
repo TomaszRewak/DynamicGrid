@@ -1,6 +1,7 @@
 ﻿using DynamicGrid.Buffers;
 using DynamicGrid.Threading;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
@@ -9,15 +10,15 @@ using System.Windows.Forms;
 namespace DynamicGrid
 {
 	[System.ComponentModel.DesignerCategory("")]
-	public partial class Grid<TRow> : UserControl
+	public class Grid<TRow> : UserControl
 	{
 		private readonly CellBuffer _cellBuffer;
 		private readonly DisplayBuffer _displayBuffer;
 
 		private Column<TRow>[] _columns = Array.Empty<Column<TRow>>();
-		public Column<TRow>[] Columns
+		public IReadOnlyCollection<Column<TRow>> Columns
 		{
-			get => _columns;
+			get => _columns.ToArray();
 			set
 			{
 				_columns = value.ToArray();
@@ -62,12 +63,12 @@ namespace DynamicGrid
 				var offset = 0;
 
 				var minColumn = 0;
-				while (minColumn < Columns.Length - 1 && offset + Columns[minColumn].Width < OffsetX)
-					offset += Columns[minColumn++].Width;
+				while (minColumn < _columns.Length - 1 && offset + _columns[minColumn].Width < OffsetX)
+					offset += _columns[minColumn++].Width;
 
 				var maxColumn = minColumn;
-				while (maxColumn < Columns.Length - 1 && offset + Columns[maxColumn].Width < OffsetX + Width)
-					offset += Columns[maxColumn++].Width;
+				while (maxColumn < _columns.Length - 1 && offset + _columns[maxColumn].Width < OffsetX + Width)
+					offset += _columns[maxColumn++].Width;
 
 				return (minColumn, maxColumn);
 			}
@@ -78,7 +79,7 @@ namespace DynamicGrid
 			get
 			{
 				int width = 0;
-				foreach (var column in Columns)
+				foreach (var column in _columns)
 					width += column.Width;
 				return width;
 			}
@@ -100,7 +101,7 @@ namespace DynamicGrid
 
 			const int rowHeight = 20;
 
-			_cellBuffer.Resize(Columns.Length, Height / rowHeight + 1);
+			_cellBuffer.Resize(_columns.Length, Height / rowHeight + 1);
 			_displayBuffer.Resize(new Size(Math.Max(ColumnsWidth, Width + OffsetX), Height));
 
 			int minColumnOffset = int.MaxValue,
@@ -116,9 +117,9 @@ namespace DynamicGrid
 			{
 				var row = RowSupplier.Get(rowIndex);
 
-				for (int columnIndex = minColumn, columnOffset = initialColumnOffset; columnIndex <= maxColumn; columnOffset += Columns[columnIndex++].Width)
+				for (int columnIndex = minColumn, columnOffset = initialColumnOffset; columnIndex <= maxColumn; columnOffset += _columns[columnIndex++].Width)
 				{
-					var column = Columns[columnIndex];
+					var column = _columns[columnIndex];
 					var cell = column.GetCell(row);
 					var changed = _cellBuffer.TrySet(rowIndex, columnIndex, in cell);
 
@@ -168,7 +169,7 @@ namespace DynamicGrid
 		{
 			var offset = 0;
 			for (var c = 0; c < column; c++)
-				offset += Columns[c].Width;
+				offset += _columns[c].Width;
 			return offset;
 		}
 

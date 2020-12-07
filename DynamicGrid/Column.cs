@@ -9,7 +9,17 @@ namespace DynamicGrid
 	public abstract class Column<TRow>
 	{
 		public string Header { get; }
-		public int Width { get; internal set; }
+
+		private int _width;
+		public int Width
+		{
+			get => _width;
+			internal set
+			{
+				_width = value;
+				WidthChanged?.Invoke(this, EventArgs.Empty);
+			}
+		}
 
 		protected Column(string header, int width = 50)
 		{
@@ -18,5 +28,7 @@ namespace DynamicGrid
 		}
 
 		public abstract Cell GetCell(TRow row);
+
+		public event EventHandler WidthChanged;
 	}
 }

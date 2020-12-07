@@ -18,7 +18,6 @@ namespace DynamicGrid.ExampleApp
 		public MyGrid()
 		{
 			RowSupplier = new MyRowSupplier();
-			Columns = Enumerable.Range(0, 100).Select(c => new MyColumn(this, c)).ToArray();
 			OffsetX = 150;
 
 			_ = new DispatcherTimer(
