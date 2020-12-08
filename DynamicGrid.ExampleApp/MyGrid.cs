@@ -18,7 +18,6 @@ namespace DynamicGrid.ExampleApp
 		public MyGrid()
 		{
 			RowSupplier = new MyRowSupplier();
-			OffsetX = 150;
 
 			_ = new DispatcherTimer(
 				TimeSpan.FromMilliseconds(1),

@@ -37,16 +37,16 @@ namespace DynamicGrid
 			}
 		}
 
-		private int _offsetX;
-		public int OffsetX
+		private int _horizontalOffset;
+		public int HorizontalOffset
 		{
-			get => _offsetX;
+			get => _horizontalOffset;
 			set
 			{
-				if (_offsetX == value) return;
+				if (_horizontalOffset == value) return;
 
 				var oldVisibleColumns = VisibleColumns;
-				_offsetX = value;
+				_horizontalOffset = value;
 				var newVisibleColumns = VisibleColumns;
 
 				if (newVisibleColumns != oldVisibleColumns)
@@ -63,11 +63,11 @@ namespace DynamicGrid
 				var offset = 0;
 
 				var minColumn = 0;
-				while (minColumn < _columns.Length - 1 && offset + _columns[minColumn].Width < OffsetX)
+				while (minColumn < _columns.Length - 1 && offset + _columns[minColumn].Width < HorizontalOffset)
 					offset += _columns[minColumn++].Width;
 
 				var maxColumn = minColumn;
-				while (maxColumn < _columns.Length - 1 && offset + _columns[maxColumn].Width < OffsetX + Width)
+				while (maxColumn < _columns.Length - 1 && offset + _columns[maxColumn].Width < HorizontalOffset + Width)
 					offset += _columns[maxColumn++].Width;
 
 				return (minColumn, maxColumn);
@@ -102,7 +102,7 @@ namespace DynamicGrid
 			const int rowHeight = 20;
 
 			_cellBuffer.Resize(_columns.Length, Height / rowHeight + 1);
-			_displayBuffer.Resize(new Size(Math.Max(ColumnsWidth, Width + OffsetX), Height));
+			_displayBuffer.Resize(new Size(Math.Max(ColumnsWidth, Width + HorizontalOffset), Height));
 
 			int minColumnOffset = int.MaxValue,
 				maxColumnOffset = int.MinValue,
@@ -136,7 +136,7 @@ namespace DynamicGrid
 			}
 
 			var invalidatedRect = drawingContext.InvalidatedRect;
-			invalidatedRect.Offset(-OffsetX, 0);
+			invalidatedRect.Offset(-HorizontalOffset, 0);
 			Invalidate(invalidatedRect);
 
 			Trace.WriteLine($"{minColumn}:{maxColumn} {invalidatedRect}");
@@ -151,7 +151,7 @@ namespace DynamicGrid
 
 		protected override void OnPaint(PaintEventArgs e)
 		{
-			_displayBuffer.Flush(e.ClipRectangle, OffsetX);
+			_displayBuffer.Flush(e.ClipRectangle, HorizontalOffset);
 		}
 
 		protected override void OnPaintBackground(PaintEventArgs e)

@@ -16,10 +16,15 @@ namespace DynamicGrid.ExampleApp
 		{
 			InitializeComponent();
 
-			var columns = Enumerable.Range(0, 20).Select(c => new MyColumn(grid, c)).ToArray();
+			var columns = Enumerable.Range(0, 20).Select(c => new MyColumn(_grid, c)).ToArray();
 
-			gridHeader.Columns = columns;
-			grid.Columns = columns;
+			_gridHeader.Columns = columns;
+			_grid.Columns = columns;
+		}
+
+		private void OnHorizontalScrollBarValueChanged(object sender, EventArgs e)
+		{
+			_grid.HorizontalOffset = _horizontalScrollBar.Value;
 		}
 	}
 }
