@@ -25,6 +25,7 @@ namespace DynamicGrid.ExampleApp
 		private void OnHorizontalScrollBarValueChanged(object sender, EventArgs e)
 		{
 			_grid.HorizontalOffset = _horizontalScrollBar.Value;
+			_gridHeader.HorizontalOffset = _horizontalScrollBar.Value;
 		}
 	}
 }

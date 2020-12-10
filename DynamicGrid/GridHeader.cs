@@ -24,6 +24,17 @@ namespace DynamicGrid
 			}
 		}
 
+		public int HorizontalOffset
+		{
+			get => -Padding.Left;
+			set => Padding = new Padding(-value, 0, 0, 0);
+		}
+
+		public GridHeader()
+		{
+			BackColor = Color.FromArgb(90, 90, 90);
+		}
+
 		private void Rebuild()
 		{
 			SuspendLayout();
@@ -36,13 +47,15 @@ namespace DynamicGrid
 				var splitter = new SplitContainer
 				{
 					Dock = DockStyle.Fill,
-					SplitterDistance = column.Width,
+					SplitterDistance = column.Width - 3,
+					SplitterWidth = 3,
 					FixedPanel = FixedPanel.Panel1
 				};
 				splitter.Panel1.Controls.Add(new Label
 				{
 					Text = column.Header,
-					BackColor = Color.MediumPurple,
+					ForeColor = Color.White,
+					BackColor = Color.FromArgb(50, 50, 50),
 					Dock = DockStyle.Fill,
 					TextAlign = ContentAlignment.MiddleCenter,
 					Padding = Padding.Empty
@@ -50,7 +63,7 @@ namespace DynamicGrid
 				splitter.Panel2.Controls.Add(topSplitter);
 				splitter.SplitterMoved += (o, e) =>
 				{
-					column.Width = splitter.SplitterDistance;
+					column.Width = splitter.SplitterDistance + 3;
 				};
 
 				topSplitter = splitter;

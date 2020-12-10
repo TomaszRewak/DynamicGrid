@@ -18,13 +18,13 @@ namespace DynamicGrid.ExampleApp
 			_gridHeader.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 			_gridHeader.Location = new Point(0, 0);
 			_gridHeader.Name = "gridHeader";
-			_gridHeader.Size = new Size(800, 30);
+			_gridHeader.Size = new Size(800, 40);
 			_gridHeader.TabIndex = 0;
 
 			_grid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-			_grid.Location = new Point(0, 30);
+			_grid.Location = new Point(0, 40);
 			_grid.Name = "grid";
-			_grid.Size = new Size(800, 440);
+			_grid.Size = new Size(800, 430);
 			_grid.TabIndex = 1;
 
 			_horizontalScrollBar.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
