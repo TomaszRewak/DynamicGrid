@@ -21,7 +21,14 @@ namespace DynamicGrid
 			get => _columns.ToArray();
 			set
 			{
+				foreach (var column in _columns)
+					column.WidthChanged -= OnColumnWidthChanged;
+
 				_columns = value.ToArray();
+
+				foreach (var column in _columns)
+					column.WidthChanged += OnColumnWidthChanged;
+
 				InvalidateData();
 			}
 		}
@@ -162,6 +169,13 @@ namespace DynamicGrid
 			base.OnBackColorChanged(e);
 
 			ClearBuffers();
+			Invalidate();
+		}
+
+		private void OnColumnWidthChanged(object sender, EventArgs e)
+		{
+			ClearBuffers();
+			InvalidateData();
 			Invalidate();
 		}
 

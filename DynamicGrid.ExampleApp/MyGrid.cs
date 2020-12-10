@@ -19,11 +19,11 @@ namespace DynamicGrid.ExampleApp
 		{
 			RowSupplier = new MyRowSupplier();
 
-			_ = new DispatcherTimer(
-				TimeSpan.FromMilliseconds(1),
-				DispatcherPriority.Background,
-				(e, a) => Step(),
-				Dispatcher.CurrentDispatcher);
+			//_ = new DispatcherTimer(
+			//	TimeSpan.FromMilliseconds(1),
+			//	DispatcherPriority.Background,
+			//	(e, a) => Step(),
+			//	Dispatcher.CurrentDispatcher);
 		}
 
 		private void Step()

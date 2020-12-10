@@ -31,7 +31,7 @@ namespace DynamicGrid
 			Controls.Clear();
 
 			SplitContainer topSplitter = null;
-			foreach (var column in Columns.Reverse())
+			foreach (var column in _columns.Reverse())
 			{
 				var splitter = new SplitContainer
 				{
