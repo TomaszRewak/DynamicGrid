@@ -13,6 +13,8 @@ namespace DynamicGrid
 	[System.ComponentModel.DesignerCategory("")]
 	public class GridHeader<TRow> : UserControl
 	{
+		private readonly Control _container;
+
 		private Column<TRow>[] _columns = Array.Empty<Column<TRow>>();
 		public IReadOnlyCollection<Column<TRow>> Columns
 		{
@@ -26,20 +28,29 @@ namespace DynamicGrid
 
 		public int HorizontalOffset
 		{
-			get => -Padding.Left;
-			set => Padding = new Padding(-value, 0, 0, 0);
+			get => -_container.Left;
+			set => _container.Left = -value;
 		}
 
 		public GridHeader()
 		{
-			BackColor = Color.FromArgb(90, 90, 90);
+			_container = new Panel
+			{
+				Height = Height,
+				Width = int.MaxValue,
+				BackColor = Color.FromArgb(90, 90, 90),
+				Padding = new Padding(1, 0, 0, 0)
+			};
+
+			BackColor = Color.Pink;
+			Controls.Add(_container);
 		}
 
 		private void Rebuild()
 		{
 			SuspendLayout();
 
-			Controls.Clear();
+			_container.Controls.Clear();
 
 			SplitContainer topSplitter = null;
 			foreach (var column in _columns.Reverse())
@@ -69,12 +80,20 @@ namespace DynamicGrid
 				topSplitter = splitter;
 			}
 
-			Controls.Add(topSplitter);
-
 			topSplitter.Width = int.MaxValue;
-			topSplitter.Dock = DockStyle.Left;
+			topSplitter.Dock = DockStyle.Top | DockStyle.Bottom;
+			topSplitter.Left = 10;
+
+			_container.Controls.Add(topSplitter);
 
 			ResumeLayout();
+		}
+
+		protected override void OnSizeChanged(EventArgs e)
+		{
+			base.OnResize(e);
+
+			_container.Height = Height;
 		}
 	}
 }
