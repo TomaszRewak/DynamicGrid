@@ -14,6 +14,8 @@ namespace DynamicGrid
 	{
 		private readonly CellBuffer _cellBuffer;
 		private readonly DisplayBuffer _displayBuffer;
+		private readonly Ref<bool> _dataInvalidationGuard = new();
+		private Rectangle _invalidDataRegion = Rectangle.Empty;
 
 		private Column<TRow>[] _columns = Array.Empty<Column<TRow>>();
 		public IReadOnlyCollection<Column<TRow>> Columns
@@ -32,6 +34,8 @@ namespace DynamicGrid
 				InvalidateData();
 			}
 		}
+
+		public int RowHeight => 20;
 
 		private IRowSupplier<TRow> _rowSupplier;
 		public IRowSupplier<TRow> RowSupplier
@@ -81,6 +85,11 @@ namespace DynamicGrid
 			}
 		}
 
+		private (int MinRow, int MaxRow) VisibleRows
+		{
+			get => (0, Height / RowHeight);
+		}
+
 		private int ColumnsWidth
 		{
 			get
@@ -110,15 +119,55 @@ namespace DynamicGrid
 			base.Dispose(disposing);
 		}
 
-		private readonly Ref<bool> _invalidateDataGuard = new();
-		public void InvalidateData() =>
-		this.DispatchOnce(_invalidateDataGuard, () =>
+		public void InvalidateData()
+		{
+			var (minColumn, maxColumn) = VisibleColumns;
+			var (minRow, maxRow) = VisibleRows;
+
+			InvalidateData(minColumn, maxColumn, minRow, maxRow);
+		}
+
+		public void InvalidateRow(int row)
+		{
+			var (minColumn, maxColumn) = VisibleColumns;
+
+			InvalidateData(minColumn, maxColumn, row, row);
+		}
+
+		public void InvalidateColumn(int column)
+		{
+			var (minRow, maxRow) = VisibleRows;
+
+			InvalidateData(column, column, minRow, maxRow);
+		}
+
+		public void InvalidateData(int minColumn, int maxColumn, int minRow, int maxRow)
+		{
+			var region = new Rectangle(
+				minColumn,
+				minRow,
+				maxColumn - minColumn,
+				maxRow - minRow);
+
+			_invalidDataRegion = Rectangle.Union(_invalidDataRegion, region);
+
+			RefreshData();
+		}
+
+		private void RefreshData() =>
+		this.DispatchOnce(_dataInvalidationGuard, () =>
 		{
 			if (RowSupplier == null) return;
 
-			const int rowHeight = 20;
+			var (minRow, maxRow) = VisibleRows;
+			var (minColumn, maxColumn) = VisibleColumns;
 
-			_cellBuffer.Resize(_columns.Length, Height / rowHeight + 1);
+			minColumn = Math.Max(minColumn, _invalidDataRegion.Left);
+			maxColumn = Math.Min(maxColumn, _invalidDataRegion.Right);
+			minRow = Math.Max(minRow, _invalidDataRegion.Top);
+			maxRow = Math.Min(maxRow, _invalidDataRegion.Bottom);
+
+			_cellBuffer.Resize(_columns.Length, Height / RowHeight + 1);
 			_displayBuffer.Resize(new Size(Math.Max(ColumnsWidth, Width + HorizontalOffset), Height));
 
 			int minColumnOffset = int.MaxValue,
@@ -126,11 +175,10 @@ namespace DynamicGrid
 				minRowOffset = int.MaxValue,
 				maxRowOffset = int.MinValue;
 
-			var (minColumn, maxColumn) = VisibleColumns;
 			var initialColumnOffset = GetOffset(minColumn);
 			var drawingContext = _displayBuffer.CreateDrawingContext();
 
-			for (int rowIndex = 0, rowOffset = 0; rowOffset < Height; rowIndex++, rowOffset += rowHeight)
+			for (int rowIndex = minRow, rowOffset = 0; rowIndex <= maxRow; rowIndex++, rowOffset += RowHeight)
 			{
 				var row = RowSupplier.Get(rowIndex);
 
@@ -142,21 +190,23 @@ namespace DynamicGrid
 
 					if (changed)
 					{
-						drawingContext.Draw(columnOffset, rowOffset, column.Width, rowHeight, cell);
+						drawingContext.Draw(columnOffset, rowOffset, column.Width, RowHeight, cell);
 
 						minColumnOffset = Math.Min(minColumnOffset, columnOffset);
 						maxColumnOffset = Math.Max(maxColumnOffset, columnOffset + column.Width);
 						minRowOffset = Math.Min(minRowOffset, rowOffset);
-						maxRowOffset = Math.Max(maxRowOffset, rowOffset + rowHeight);
+						maxRowOffset = Math.Max(maxRowOffset, rowOffset + RowHeight);
 					}
 				}
 			}
+
+			_invalidDataRegion = Rectangle.Empty;
 
 			var invalidatedRect = drawingContext.InvalidatedRect;
 			invalidatedRect.Offset(-HorizontalOffset, 0);
 			Invalidate(invalidatedRect);
 
-			Trace.WriteLine($"{minColumn}:{maxColumn} {invalidatedRect}");
+			Trace.WriteLine($"{minColumn}:{maxColumn} {minRow}:{maxRow} {invalidatedRect}");
 		});
 
 		protected override void OnSizeChanged(EventArgs e)

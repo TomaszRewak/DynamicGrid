@@ -17,8 +17,6 @@ namespace DynamicGrid.ExampleApp
 
 		public MyGrid()
 		{
-			RowSupplier = new MyRowSupplier();
-
 			//_ = new DispatcherTimer(
 			//	TimeSpan.FromMilliseconds(1),
 			//	DispatcherPriority.Background,
