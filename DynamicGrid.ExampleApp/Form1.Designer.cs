@@ -20,6 +20,7 @@ namespace DynamicGrid.ExampleApp
 			_gridHeader.Name = "gridHeader";
 			_gridHeader.Size = new Size(800, 40);
 			_gridHeader.TabIndex = 0;
+			_gridHeader.ColumnsWidthChanged += OnColumnsWidthChanged;
 
 			_grid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 			_grid.Location = new Point(0, 40);

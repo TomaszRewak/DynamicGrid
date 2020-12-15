@@ -27,5 +27,17 @@ namespace DynamicGrid.ExampleApp
 			_grid.HorizontalOffset = _horizontalScrollBar.Value;
 			_gridHeader.HorizontalOffset = _horizontalScrollBar.Value;
 		}
+
+		private void OnColumnsWidthChanged(object sender, EventArgs e)
+		{
+			_horizontalScrollBar.Maximum = Math.Max(0, _gridHeader.ColumnsWidths);
+		}
+
+		protected override void OnSizeChanged(EventArgs e)
+		{
+			base.OnSizeChanged(e);
+
+			_horizontalScrollBar.LargeChange = ClientSize.Width;
+		}
 	}
 }

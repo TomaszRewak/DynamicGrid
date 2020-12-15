@@ -21,8 +21,30 @@ namespace DynamicGrid
 			get => _columns.ToArray();
 			set
 			{
+				foreach (var column in _columns)
+					column.WidthChanged -= OnColumnWidthChanged;
+
 				_columns = value.ToArray();
+
+				foreach (var column in _columns)
+					column.WidthChanged += OnColumnWidthChanged;
+
 				Rebuild();
+				UpdateColumnsWidth();
+			}
+		}
+
+		private int _columnWidths;
+		public int ColumnsWidths
+		{
+			get => _columnWidths;
+			private set
+			{
+				if (_columnWidths == value) return;
+
+				_columnWidths = value;
+
+				ColumnsWidthChanged?.Invoke(this, EventArgs.Empty);
 			}
 		}
 
@@ -44,6 +66,16 @@ namespace DynamicGrid
 
 			BackColor = Color.Pink;
 			Controls.Add(_container);
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				Columns = Array.Empty<Column<TRow>>();
+			}
+
+			base.Dispose(disposing);
 		}
 
 		private void Rebuild()
@@ -89,11 +121,23 @@ namespace DynamicGrid
 			ResumeLayout();
 		}
 
+		private void UpdateColumnsWidth()
+		{
+			ColumnsWidths = Columns.Sum(c => c.Width);
+		}
+
 		protected override void OnSizeChanged(EventArgs e)
 		{
 			base.OnResize(e);
 
 			_container.Height = Height;
 		}
+
+		private void OnColumnWidthChanged(object sender, EventArgs e)
+		{
+			UpdateColumnsWidth();
+		}
+
+		public event EventHandler ColumnsWidthChanged;
 	}
 }

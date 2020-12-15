@@ -100,6 +100,16 @@ namespace DynamicGrid
 			BackColor = Color.DodgerBlue;
 		}
 
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				Columns = Array.Empty<Column<TRow>>();
+			}
+
+			base.Dispose(disposing);
+		}
+
 		private readonly Ref<bool> _invalidateDataGuard = new();
 		public void InvalidateData() =>
 		this.DispatchOnce(_invalidateDataGuard, () =>
