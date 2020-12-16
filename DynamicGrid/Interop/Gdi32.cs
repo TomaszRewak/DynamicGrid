@@ -44,6 +44,11 @@ namespace DynamicGrid.Interop
 			PrintText(hdc, rectangle, Point.Empty, string.Empty);
 		}
 
+		public static void Delete(IntPtr hdc)
+		{
+			DeleteObject(hdc);
+		}
+
 		[DllImport("gdi32.dll", EntryPoint = "ExtTextOutW")]
 		private static extern bool ExtTextOut(IntPtr hdc, int X, int Y, ETOOptions fuOptions, [In] ref RECT lprc, [MarshalAs(UnmanagedType.LPWStr)] string lpString, uint cbCount, [In] IntPtr lpDx);
 
@@ -56,6 +61,10 @@ namespace DynamicGrid.Interop
 
 		[DllImport("gdi32.dll")]
 		private static extern uint SetTextAlign(IntPtr hdc, Alignment fMode);
+
+		[DllImport("gdi32.dll", EntryPoint = "DeleteObject")]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		private static extern bool DeleteObject([In] IntPtr hObject);
 
 		private enum TernaryRasterOperations : uint
 		{

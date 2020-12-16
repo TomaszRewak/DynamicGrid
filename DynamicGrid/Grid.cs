@@ -1,4 +1,5 @@
 ﻿using DynamicGrid.Buffers;
+using DynamicGrid.Managers;
 using DynamicGrid.Threading;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ namespace DynamicGrid
 	{
 		private readonly CellBuffer _cellBuffer;
 		private readonly DisplayBuffer _displayBuffer;
+		private readonly FontManager _fontManager;
 		private readonly Ref<bool> _dataInvalidationGuard = new();
 		private Rectangle _invalidDataRegion = Rectangle.Empty;
 
@@ -105,6 +107,7 @@ namespace DynamicGrid
 		{
 			_cellBuffer = new CellBuffer();
 			_displayBuffer = new DisplayBuffer(CreateGraphics());
+			_fontManager = new FontManager(Font);
 
 			BackColor = Color.LightGray;
 		}
@@ -226,6 +229,17 @@ namespace DynamicGrid
 			base.OnBackColorChanged(e);
 
 			ClearBuffers();
+			Invalidate();
+		}
+
+		protected override void OnFontChanged(EventArgs e)
+		{
+			base.OnFontChanged(e);
+
+			_fontManager.Load(Font);
+
+			ClearBuffers();
+			InvalidateData();
 			Invalidate();
 		}
 
