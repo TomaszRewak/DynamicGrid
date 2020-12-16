@@ -124,24 +124,29 @@ namespace DynamicGrid
 			var (minColumn, maxColumn) = VisibleColumns;
 			var (minRow, maxRow) = VisibleRows;
 
-			InvalidateData(minColumn, maxColumn, minRow, maxRow);
+			InvalidateData(minRow, maxRow, minColumn, maxColumn);
 		}
 
 		public void InvalidateRow(int row)
 		{
 			var (minColumn, maxColumn) = VisibleColumns;
 
-			InvalidateData(minColumn, maxColumn, row, row);
+			InvalidateData(row, row, minColumn, maxColumn);
 		}
 
 		public void InvalidateColumn(int column)
 		{
 			var (minRow, maxRow) = VisibleRows;
 
-			InvalidateData(column, column, minRow, maxRow);
+			InvalidateData(minRow, maxRow, column, column);
 		}
 
-		public void InvalidateData(int minColumn, int maxColumn, int minRow, int maxRow)
+		public void InvalidateCell(int row, int column)
+		{
+			InvalidateData(row, row, column, column);
+		}
+
+		public void InvalidateData(int minRow, int maxRow, int minColumn, int maxColumn)
 		{
 			var region = new Rectangle(
 				minColumn,
@@ -149,7 +154,9 @@ namespace DynamicGrid
 				maxColumn - minColumn,
 				maxRow - minRow);
 
-			_invalidDataRegion = Rectangle.Union(_invalidDataRegion, region);
+			_invalidDataRegion = _invalidDataRegion == Rectangle.Empty
+				? region
+				: Rectangle.Union(_invalidDataRegion, region);
 
 			RefreshData();
 		}
@@ -175,10 +182,12 @@ namespace DynamicGrid
 				minRowOffset = int.MaxValue,
 				maxRowOffset = int.MinValue;
 
-			var initialColumnOffset = GetOffset(minColumn);
+			var initialColumnOffset = GetColumnOffset(minColumn);
+			var initialRowOffset = GetRowOffset(minRow);
+
 			var drawingContext = _displayBuffer.CreateDrawingContext();
 
-			for (int rowIndex = minRow, rowOffset = 0; rowIndex <= maxRow; rowIndex++, rowOffset += RowHeight)
+			for (int rowIndex = minRow, rowOffset = initialRowOffset; rowIndex <= maxRow; rowIndex++, rowOffset += RowHeight)
 			{
 				var row = RowSupplier.Get(rowIndex);
 
@@ -239,12 +248,17 @@ namespace DynamicGrid
 			Invalidate();
 		}
 
-		private int GetOffset(int column)
+		private int GetColumnOffset(int column)
 		{
 			var offset = 0;
 			for (var c = 0; c < column; c++)
 				offset += _columns[c].Width;
 			return offset;
+		}
+
+		private int GetRowOffset(int row)
+		{
+			return row * RowHeight;
 		}
 
 		private void ClearBuffers()
