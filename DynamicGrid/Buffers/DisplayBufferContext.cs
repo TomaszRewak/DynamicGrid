@@ -47,7 +47,9 @@ namespace DynamicGrid.Buffers
 
 			Gdi32.PrintText(_buffer, rectangle, position, cell.Text);
 
-			InvalidatedRect = Rectangle.Union(InvalidatedRect, rectangle);
+			InvalidatedRect = InvalidatedRect == Rectangle.Empty
+				? rectangle
+				: Rectangle.Union(InvalidatedRect, rectangle);
 		}
 	}
 }
