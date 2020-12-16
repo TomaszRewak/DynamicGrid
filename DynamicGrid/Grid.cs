@@ -177,11 +177,6 @@ namespace DynamicGrid
 			_cellBuffer.Resize(_columns.Length, Height / RowHeight + 1);
 			_displayBuffer.Resize(new Size(Math.Max(ColumnsWidth, Width + HorizontalOffset), Height));
 
-			int minColumnOffset = int.MaxValue,
-				maxColumnOffset = int.MinValue,
-				minRowOffset = int.MaxValue,
-				maxRowOffset = int.MinValue;
-
 			var initialColumnOffset = GetColumnOffset(minColumn);
 			var initialRowOffset = GetRowOffset(minRow);
 
@@ -198,14 +193,7 @@ namespace DynamicGrid
 					var changed = _cellBuffer.TrySet(rowIndex, columnIndex, in cell);
 
 					if (changed)
-					{
 						drawingContext.Draw(columnOffset, rowOffset, column.Width, RowHeight, cell);
-
-						minColumnOffset = Math.Min(minColumnOffset, columnOffset);
-						maxColumnOffset = Math.Max(maxColumnOffset, columnOffset + column.Width);
-						minRowOffset = Math.Min(minRowOffset, rowOffset);
-						maxRowOffset = Math.Max(maxRowOffset, rowOffset + RowHeight);
-					}
 				}
 			}
 
