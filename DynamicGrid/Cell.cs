@@ -22,6 +22,8 @@ namespace DynamicGrid
 			Color = color;
 		}
 
+		public static Cell Empty => new Cell(Color.Transparent);
+
 		public static bool operator !=(in Cell lhs, in Cell rhs) => !(lhs == rhs);
 		public static bool operator ==(in Cell lhs, in Cell rhs) =>
 			lhs.Color == rhs.Color &&

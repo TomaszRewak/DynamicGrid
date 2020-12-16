@@ -73,7 +73,7 @@ namespace DynamicGrid.Buffers
 
 		public DisplayBufferContext CreateDrawingContext()
 		{
-			return new DisplayBufferContext(_bufferHdc);
+			return new DisplayBufferContext(_bufferHdc, _backgroundColor);
 		}
 
 		public void Flush(Rectangle rectangle, int offsetX)

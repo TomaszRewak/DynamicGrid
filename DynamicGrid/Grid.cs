@@ -106,7 +106,7 @@ namespace DynamicGrid
 			_cellBuffer = new CellBuffer();
 			_displayBuffer = new DisplayBuffer(CreateGraphics());
 
-			BackColor = Color.DodgerBlue;
+			BackColor = Color.LightGray;
 		}
 
 		protected override void Dispose(bool disposing)

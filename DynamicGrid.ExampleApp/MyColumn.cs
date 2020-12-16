@@ -21,16 +21,18 @@ namespace DynamicGrid.ExampleApp
 
 		public override Cell GetCell(MyRow row)
 		{
-			var rowIndex = row?.Index ?? 0;
+			if (row == null)
+				return Cell.Empty;
+
 			var now = DateTime.Now;
 
 			//if (rowIndex % 10 > 1 || _index % 10 > 1)
 			//	return new Cell(Color.Gray);
 
 			var color = Color.FromArgb(
-				(int)((1 + Math.Sin((double)now.Ticks / 10000000 + _index * 0.05 + rowIndex * 0.05)) / 2 * 255),
-				(int)((1 + Math.Sin((double)now.Ticks / 20000000 + _index * 0.1 + rowIndex * 0.2)) / 2 * 255),
-				(int)((1 + Math.Sin((double)now.Ticks / 30000000 + _index * 0.5 + rowIndex * 0.05)) / 2 * 255));
+				(int)((1 + Math.Sin((double)now.Ticks / 10000000 + _index * 0.05 + row.Index * 0.05)) / 2 * 255),
+				(int)((1 + Math.Sin((double)now.Ticks / 20000000 + _index * 0.1 + row.Index * 0.2)) / 2 * 255),
+				(int)((1 + Math.Sin((double)now.Ticks / 30000000 + _index * 0.5 + row.Index * 0.05)) / 2 * 255));
 
 			return new Cell($"{_grid.Fps:####}fps {now.Millisecond:D3}", HorizontalAlignment.Center, color);
 		}
