@@ -29,14 +29,14 @@ namespace DynamicGrid.Interop
 				_ => throw new InvalidEnumArgumentException(nameof(alignment), (int)alignment, typeof(HorizontalAlignment))
 			};
 
-			SetTextAlign(hdc, value | Alignment.BOTTOM);
+			SetTextAlign(hdc, value);
 		}
 
 		public static void PrintText(IntPtr hdc, Rectangle rectangle, Point position, string text)
 		{
 			var rect = new RECT(rectangle.X, rectangle.Y, rectangle.Right, rectangle.Bottom);
 
-			ExtTextOut(hdc, rectangle.X + position.X, rectangle.Y + position.Y + rectangle.Height, ETOOptions.OPAQUE | ETOOptions.CLIPPED, ref rect, text, (uint)text.Length, IntPtr.Zero);
+			ExtTextOut(hdc, rectangle.X + position.X, rectangle.Y + position.Y, ETOOptions.OPAQUE | ETOOptions.CLIPPED, ref rect, text, (uint)text.Length, IntPtr.Zero);
 		}
 
 		public static void Fill(IntPtr hdc, Rectangle rectangle)
@@ -63,6 +63,16 @@ namespace DynamicGrid.Interop
 			return new Size(size.cx, size.cy);
 		}
 
+		public static FontMetrics GetFontMetrics(IntPtr hdc, IntPtr font)
+		{
+			Select(hdc, font);
+			GetTextMetrics(hdc, out var metrics);
+
+			return new FontMetrics(
+				metrics.tmAscent - metrics.tmInternalLeading,
+				metrics.tmInternalLeading + metrics.tmExternalLeading);
+		}
+
 		[DllImport("gdi32.dll", EntryPoint = "ExtTextOutW")]
 		private static extern bool ExtTextOut(IntPtr hdc, int X, int Y, ETOOptions fuOptions, [In] ref RECT lprc, [MarshalAs(UnmanagedType.LPWStr)] string lpString, uint cbCount, [In] IntPtr lpDx);
 
@@ -85,6 +95,9 @@ namespace DynamicGrid.Interop
 
 		[DllImport("gdi32.dll")]
 		static extern bool GetTextExtentPoint32(IntPtr hdc, string lpString, int cbString, out SIZE lpSize);
+
+		[DllImport("gdi32.dll", CharSet = CharSet.Auto)]
+		static extern bool GetTextMetrics(IntPtr hdc, out TEXTMETRIC lptm);
 
 		private enum TernaryRasterOperations : uint
 		{
@@ -160,6 +173,31 @@ namespace DynamicGrid.Interop
 				this.cx = cx;
 				this.cy = cy;
 			}
+		}
+
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+		internal struct TEXTMETRIC
+		{
+			public int tmHeight;
+			public int tmAscent;
+			public int tmDescent;
+			public int tmInternalLeading;
+			public int tmExternalLeading;
+			public int tmAveCharWidth;
+			public int tmMaxCharWidth;
+			public int tmWeight;
+			public int tmOverhang;
+			public int tmDigitizedAspectX;
+			public int tmDigitizedAspectY;
+			public char tmFirstChar;
+			public char tmLastChar;
+			public char tmDefaultChar;
+			public char tmBreakChar;
+			public byte tmItalic;
+			public byte tmUnderlined;
+			public byte tmStruckOut;
+			public byte tmPitchAndFamily;
+			public byte tmCharSet;
 		}
 	}
 }

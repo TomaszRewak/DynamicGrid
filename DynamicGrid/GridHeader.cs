@@ -112,9 +112,12 @@ namespace DynamicGrid
 				topSplitter = splitter;
 			}
 
-			topSplitter.Width = int.MaxValue;
-			topSplitter.Dock = DockStyle.Top | DockStyle.Bottom;
-			topSplitter.Left = 10;
+			if (topSplitter != null)
+			{
+				topSplitter.Width = int.MaxValue;
+				topSplitter.Dock = DockStyle.Top | DockStyle.Bottom;
+				topSplitter.Left = 10;
+			}
 
 			_container.Controls.Add(topSplitter);
 
