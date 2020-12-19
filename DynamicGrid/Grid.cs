@@ -39,7 +39,7 @@ namespace DynamicGrid
 			}
 		}
 
-		public int RowHeight => _fontManager.FontMetrics.FontHeight;
+		public int RowHeight => _fontManager.FontHeight + 1;
 
 		private IRowSupplier<TRow> _rowSupplier;
 		public IRowSupplier<TRow> RowSupplier

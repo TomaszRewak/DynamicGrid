@@ -18,7 +18,9 @@ namespace DynamicGrid.Managers
 		public IntPtr RegularFont { get; private set; }
 		public IntPtr BoldFont { get; private set; }
 
-		public FontMetrics FontMetrics { get; private set; }
+		public int FontHeight { get; set; }
+		public int FontTopOffset { get; set; }
+		public int FontBottomOffset { get; set; }
 
 		public FontManager(IntPtr hdc)
 		{
@@ -69,7 +71,7 @@ namespace DynamicGrid.Managers
 			RegularFont = _regularFont.ToHfont();
 			BoldFont = _boldFont.ToHfont();
 
-			FontMetrics = Gdi32.GetFontMetrics(_hdc, RegularFont);
+			FontHeight = (int)Math.Ceiling(font.GetHeight());
 		}
 	}
 }
