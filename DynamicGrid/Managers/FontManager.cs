@@ -10,15 +10,19 @@ namespace DynamicGrid.Managers
 {
 	internal sealed class FontManager : IDisposable
 	{
+		private readonly IntPtr _hdc;
+
 		private Font _regularFont;
 		private Font _boldFont;
 
 		public IntPtr RegularFont { get; private set; }
 		public IntPtr BoldFont { get; private set; }
 
-		public FontManager(Font font)
+		public int FontSize { get; private set; }
+
+		public FontManager(IntPtr hdc)
 		{
-			Load(font);
+			_hdc = hdc;
 		}
 
 		~FontManager()
@@ -64,6 +68,8 @@ namespace DynamicGrid.Managers
 
 			RegularFont = _regularFont.ToHfont();
 			BoldFont = _boldFont.ToHfont();
+
+			FontSize = Gdi32.Measure(_hdc, "X", RegularFont).Height;
 		}
 	}
 }

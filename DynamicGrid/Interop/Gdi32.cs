@@ -29,14 +29,14 @@ namespace DynamicGrid.Interop
 				_ => throw new InvalidEnumArgumentException(nameof(alignment), (int)alignment, typeof(HorizontalAlignment))
 			};
 
-			SetTextAlign(hdc, value);
+			SetTextAlign(hdc, value | Alignment.BOTTOM);
 		}
 
 		public static void PrintText(IntPtr hdc, Rectangle rectangle, Point position, string text)
 		{
 			var rect = new RECT(rectangle.X, rectangle.Y, rectangle.Right, rectangle.Bottom);
 
-			ExtTextOut(hdc, rectangle.X + position.X, rectangle.Y + position.Y, ETOOptions.OPAQUE | ETOOptions.CLIPPED, ref rect, text, (uint)text.Length, IntPtr.Zero);
+			ExtTextOut(hdc, rectangle.X + position.X, rectangle.Y + position.Y + rectangle.Height, ETOOptions.OPAQUE | ETOOptions.CLIPPED, ref rect, text, (uint)text.Length, IntPtr.Zero);
 		}
 
 		public static void Fill(IntPtr hdc, Rectangle rectangle)
@@ -47,6 +47,20 @@ namespace DynamicGrid.Interop
 		public static void Delete(IntPtr hdc)
 		{
 			DeleteObject(hdc);
+		}
+
+		public static void Select(IntPtr hdc, IntPtr obj)
+		{
+			SelectObject(hdc, obj);
+		}
+
+		public static Size Measure(IntPtr hdc, string text, IntPtr font)
+		{
+			Select(hdc, font);
+
+			GetTextExtentPoint32(hdc, text, text.Length, out var size);
+
+			return new Size(size.cx, size.cy);
 		}
 
 		[DllImport("gdi32.dll", EntryPoint = "ExtTextOutW")]
@@ -65,6 +79,12 @@ namespace DynamicGrid.Interop
 		[DllImport("gdi32.dll", EntryPoint = "DeleteObject")]
 		[return: MarshalAs(UnmanagedType.Bool)]
 		private static extern bool DeleteObject([In] IntPtr hObject);
+
+		[DllImport("gdi32.dll", EntryPoint = "SelectObject")]
+		public static extern IntPtr SelectObject([In] IntPtr hdc, [In] IntPtr hgdiobj);
+
+		[DllImport("gdi32.dll")]
+		static extern bool GetTextExtentPoint32(IntPtr hdc, string lpString, int cbString, out SIZE lpSize);
 
 		private enum TernaryRasterOperations : uint
 		{
@@ -126,6 +146,19 @@ namespace DynamicGrid.Interop
 				Top = top;
 				Right = right;
 				Bottom = bottom;
+			}
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct SIZE
+		{
+			public int cx;
+			public int cy;
+
+			public SIZE(int cx, int cy)
+			{
+				this.cx = cx;
+				this.cy = cy;
 			}
 		}
 	}

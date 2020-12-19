@@ -34,7 +34,7 @@ namespace DynamicGrid.ExampleApp
 				(int)((1 + Math.Sin((double)now.Ticks / 20000000 + _index * 0.1 + row.Index * 0.2)) / 2 * 255),
 				(int)((1 + Math.Sin((double)now.Ticks / 30000000 + _index * 0.5 + row.Index * 0.05)) / 2 * 255));
 
-			return new Cell($"{_grid.Fps:####}fps {now.Millisecond:D3}", HorizontalAlignment.Center, color);
+			return new Cell($"{_grid.Fps:####}fps X {now.Millisecond:D3}", HorizontalAlignment.Center, color);
 		}
 	}
 }

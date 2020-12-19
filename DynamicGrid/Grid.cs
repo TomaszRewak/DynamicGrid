@@ -13,6 +13,8 @@ namespace DynamicGrid
 	[System.ComponentModel.DesignerCategory("")]
 	public class Grid<TRow> : UserControl
 	{
+		private readonly Graphics _graphics;
+		private readonly IntPtr _graphicsHdc;
 		private readonly CellBuffer _cellBuffer;
 		private readonly DisplayBuffer _displayBuffer;
 		private readonly FontManager _fontManager;
@@ -37,7 +39,7 @@ namespace DynamicGrid
 			}
 		}
 
-		public int RowHeight => 20;
+		public int RowHeight => _fontManager.FontSize;
 
 		private IRowSupplier<TRow> _rowSupplier;
 		public IRowSupplier<TRow> RowSupplier
@@ -105,11 +107,15 @@ namespace DynamicGrid
 
 		public Grid()
 		{
+			_graphics = CreateGraphics();
+			_graphicsHdc = _graphics.GetHdc();
 			_cellBuffer = new CellBuffer();
-			_displayBuffer = new DisplayBuffer(CreateGraphics());
-			_fontManager = new FontManager(Font);
+			_displayBuffer = new DisplayBuffer(_graphicsHdc);
+			_fontManager = new FontManager(_graphicsHdc);
 
 			BackColor = Color.LightGray;
+
+			_fontManager.Load(Font);
 		}
 
 		protected override void Dispose(bool disposing)
