@@ -65,13 +65,13 @@ namespace DynamicGrid.Managers
 		{
 			Dispose(true);
 
-			_regularFont = new Font(font, FontStyle.Regular);
-			_boldFont = new Font(font, FontStyle.Bold);
+			FontHeight = (int)Math.Ceiling(font.GetHeight());
+
+			_regularFont = new Font(font.FontFamily, FontHeight, FontStyle.Regular, GraphicsUnit.Pixel);
+			_boldFont = new Font(font.FontFamily, FontHeight, FontStyle.Bold, GraphicsUnit.Pixel);
 
 			RegularFont = _regularFont.ToHfont();
 			BoldFont = _boldFont.ToHfont();
-
-			FontHeight = (int)Math.Ceiling(font.GetHeight());
 		}
 	}
 }
