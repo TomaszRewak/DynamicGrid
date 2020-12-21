@@ -64,8 +64,10 @@ namespace DynamicGrid
 				_horizontalOffset = value;
 				var newVisibleColumns = VisibleColumns;
 
-				if (newVisibleColumns != oldVisibleColumns)
-					InvalidateData();
+				for (int c = newVisibleColumns.MinColumn; c <= newVisibleColumns.MinColumn && c < oldVisibleColumns.MinColumn; c++)
+					InvalidateColumn(c);
+				for (int c = newVisibleColumns.MaxColumn; c >= newVisibleColumns.MaxColumn && c > oldVisibleColumns.MaxColumn; c--)
+					InvalidateColumn(c);
 
 				Invalidate();
 			}
