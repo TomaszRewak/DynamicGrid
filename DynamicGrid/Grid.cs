@@ -11,7 +11,7 @@ using System.Windows.Forms;
 namespace DynamicGrid
 {
 	[System.ComponentModel.DesignerCategory("")]
-	public class Grid<TRow> : UserControl
+	public class Grid<TRow> : Control
 	{
 		private readonly Graphics _graphics;
 		private readonly IntPtr _graphicsHdc;
