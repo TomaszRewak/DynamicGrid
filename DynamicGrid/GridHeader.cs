@@ -132,6 +132,7 @@ namespace DynamicGrid
 				var splitter = new SplitContainer
 				{
 					Dock = DockStyle.Fill,
+					Width = int.MaxValue,
 					FixedPanel = FixedPanel.Panel1,
 					SplitterDistance = column.Width - 3,
 					SplitterWidth = 3
