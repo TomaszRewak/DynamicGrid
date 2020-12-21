@@ -43,6 +43,11 @@ namespace DynamicGrid.ExampleApp
 			_horizontalScrollBar.Maximum = Math.Max(0, _gridHeader.ColumnsWidths);
 		}
 
+		private void OnColumnsChanged(object sender, EventArgs e)
+		{
+			_grid.Columns = _gridHeader.Columns;
+		}
+
 		protected override void OnSizeChanged(EventArgs e)
 		{
 			base.OnSizeChanged(e);

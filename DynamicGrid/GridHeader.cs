@@ -10,6 +10,9 @@ namespace DynamicGrid
 	public class GridHeader<TRow> : Control
 	{
 		private readonly Control _container;
+		private readonly object _dragData = new();
+
+		private int? _draggedColumn;
 
 		private Column<TRow>[] _columns = Array.Empty<Column<TRow>>();
 		public IReadOnlyCollection<Column<TRow>> Columns
@@ -27,6 +30,8 @@ namespace DynamicGrid
 
 				Rebuild();
 				UpdateColumnsWidth();
+
+				ColumnsChanged?.Invoke(this, EventArgs.Empty);
 			}
 		}
 
@@ -49,6 +54,9 @@ namespace DynamicGrid
 			get => -_container.Left;
 			set => _container.Left = -value;
 		}
+
+		public bool IsCulumnReorderingEnabled { get; set; }
+		public bool IsCulumnDeletionEnabled { get; set; }
 
 		public GridHeader()
 		{
@@ -76,31 +84,61 @@ namespace DynamicGrid
 
 		private void Rebuild()
 		{
-			SuspendLayout();
-
-			_container.Controls.Clear();
-
 			SplitContainer topSplitter = null;
-			foreach (var column in _columns.Reverse())
+			for (int i = _columns.Length - 1; i >= 0; i--)
 			{
-				var splitter = new SplitContainer
-				{
-					Dock = DockStyle.Fill,
-					SplitterDistance = column.Width - 3,
-					SplitterWidth = 3,
-					FixedPanel = FixedPanel.Panel1
-				};
-				splitter.Panel1.Controls.Add(new Label
+				var columnIndex = i;
+				var column = _columns[columnIndex];
+				var label = new Label
 				{
 					Text = column.Header,
 					ForeColor = Color.White,
 					BackColor = Color.FromArgb(50, 50, 50),
 					Dock = DockStyle.Fill,
 					TextAlign = ContentAlignment.MiddleCenter,
-					Padding = Padding.Empty
-				});
+					Padding = Padding.Empty,
+					AllowDrop = true,
+				};
+				label.MouseDown += (s, e) =>
+				{
+					_draggedColumn = columnIndex;
+
+					if (DoDragDrop(_dragData, DragDropEffects.Move) != DragDropEffects.Move)
+						RemoveColumn(columnIndex);
+				};
+				label.MouseUp += (s, e) =>
+				{
+					if (_draggedColumn == null) return;
+
+					if (e.Y < 0)
+						RemoveColumn(_draggedColumn.Value);
+
+					_draggedColumn = null;
+				};
+				label.DragEnter += (s, e) =>
+				{
+					if (e.Data.GetData(typeof(object)) != _dragData) return;
+
+					e.Effect = DragDropEffects.Move;
+				};
+				label.DragDrop += (s, e) =>
+				{
+					if (e.Data.GetData(typeof(object)) != _dragData) return;
+					if (_draggedColumn == null) return;
+
+					MoveColumn(_draggedColumn.Value, columnIndex);
+				};
+
+				var splitter = new SplitContainer
+				{
+					Dock = DockStyle.Fill,
+					FixedPanel = FixedPanel.Panel1,
+					SplitterDistance = column.Width - 3,
+					SplitterWidth = 3
+				};
+				splitter.Panel1.Controls.Add(label);
 				splitter.Panel2.Controls.Add(topSplitter);
-				splitter.SplitterMoved += (o, e) =>
+				splitter.SplitterMoved += (s, e) =>
 				{
 					column.Width = splitter.SplitterDistance + 3;
 				};
@@ -115,9 +153,12 @@ namespace DynamicGrid
 				topSplitter.Left = 10;
 			}
 
+			SuspendLayout();
+
+			_container.Controls.Clear();
 			_container.Controls.Add(topSplitter);
 
-			ResumeLayout();
+			ResumeLayout(true);
 		}
 
 		private void UpdateColumnsWidth()
@@ -142,6 +183,27 @@ namespace DynamicGrid
 			UpdateColumnsWidth();
 		}
 
+		private void MoveColumn(int from, int to)
+		{
+			var column = _columns[from];
+			var columns = new List<Column<TRow>>(_columns);
+
+			columns.RemoveAt(from);
+			columns.Insert(to, column);
+
+			Columns = columns;
+		}
+
+		private void RemoveColumn(int index)
+		{
+			var columns = new List<Column<TRow>>(_columns);
+
+			columns.RemoveAt(index);
+
+			Columns = columns;
+		}
+
 		public event EventHandler ColumnsWidthChanged;
+		public event EventHandler ColumnsChanged;
 	}
 }

@@ -13,7 +13,7 @@ namespace DynamicGrid.ExampleApp
 		private readonly MyGrid _grid;
 		private readonly int _index;
 
-		public MyColumn(MyGrid grid, int index) : base("my column", 100)
+		public MyColumn(MyGrid grid, int index) : base($"my column {index}", 100)
 		{
 			_grid = grid;
 			_index = index;
