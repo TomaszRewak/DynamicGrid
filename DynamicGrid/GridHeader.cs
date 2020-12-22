@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DynamicGrid.Utils;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -55,6 +56,27 @@ namespace DynamicGrid
 			set => _container.Left = -value;
 		}
 
+		public Color SplitterColor
+		{
+			get => _container.BackColor;
+			set => _container.BackColor = value;
+		}
+
+		private Color _headerColor = Color.FromArgb(50, 50, 50);
+		public Color HeaderColor
+		{
+			get => _headerColor;
+			set
+			{
+				if (_headerColor == value) return;
+
+				_headerColor = value;
+				Rebuild();
+			}
+		}
+
+		public Color HighlightColor { get; set; } = Color.DarkGreen;
+
 		public bool IsCulumnReorderingEnabled { get; set; }
 		public bool IsCulumnDeletionEnabled { get; set; }
 
@@ -68,7 +90,6 @@ namespace DynamicGrid
 				Padding = new Padding(1, 0, 0, 0)
 			};
 
-			BackColor = Color.Pink;
 			Controls.Add(_container);
 		}
 
@@ -93,7 +114,7 @@ namespace DynamicGrid
 				{
 					Text = column.Header,
 					ForeColor = Color.White,
-					BackColor = Color.FromArgb(50, 50, 50),
+					BackColor = HeaderColor,
 					Dock = DockStyle.Fill,
 					TextAlign = ContentAlignment.MiddleCenter,
 					Padding = Padding.Empty,
@@ -103,27 +124,31 @@ namespace DynamicGrid
 				{
 					_draggedColumn = columnIndex;
 
-					if (DoDragDrop(_dragData, DragDropEffects.Move) != DragDropEffects.Move)
+					label.BackColor = ColorUtils.Mix(HeaderColor, HighlightColor, 0.5);
+					var result = DoDragDrop(_dragData, DragDropEffects.Move);
+					label.BackColor = HeaderColor;
+
+					if (result != DragDropEffects.Move)
 						RemoveColumn(columnIndex);
-				};
-				label.MouseUp += (s, e) =>
-				{
-					if (_draggedColumn == null) return;
-
-					if (e.Y < 0)
-						RemoveColumn(_draggedColumn.Value);
-
-					_draggedColumn = null;
 				};
 				label.DragEnter += (s, e) =>
 				{
 					if (e.Data.GetData(typeof(object)) != _dragData) return;
 
 					e.Effect = DragDropEffects.Move;
+
+					if (_draggedColumn != columnIndex)
+						label.BackColor = HighlightColor;
+				};
+				label.DragLeave += (s, e) =>
+				{
+					if (_draggedColumn != columnIndex)
+						label.BackColor = HeaderColor;
 				};
 				label.DragDrop += (s, e) =>
 				{
 					if (e.Data.GetData(typeof(object)) != _dragData) return;
+					if (_draggedColumn == columnIndex) return;
 					if (_draggedColumn == null) return;
 
 					MoveColumn(_draggedColumn.Value, columnIndex);
@@ -135,13 +160,27 @@ namespace DynamicGrid
 					Width = int.MaxValue,
 					FixedPanel = FixedPanel.Panel1,
 					SplitterDistance = column.Width - 3,
-					SplitterWidth = 3
+					SplitterWidth = 3,
+					AllowDrop = true
 				};
 				splitter.Panel1.Controls.Add(label);
 				splitter.Panel2.Controls.Add(topSplitter);
 				splitter.SplitterMoved += (s, e) =>
 				{
 					column.Width = splitter.SplitterDistance + 3;
+				};
+				splitter.DragEnter += (s, e) =>
+				{
+					if (e.Data.GetData(typeof(object)) != _dragData) return;
+
+					e.Effect = DragDropEffects.Move;
+				};
+				splitter.DragDrop += (s, e) =>
+				{
+					if (e.Data.GetData(typeof(object)) != _dragData) return;
+					if (_draggedColumn == null) return;
+
+					MoveColumn(_draggedColumn.Value, columnIndex);
 				};
 
 				topSplitter = splitter;
