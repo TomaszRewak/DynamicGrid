@@ -35,7 +35,9 @@ namespace DynamicGrid
 				foreach (var column in _columns)
 					column.WidthChanged += OnColumnWidthChanged;
 
+				ClearBuffers();
 				InvalidateData();
+				Invalidate();
 			}
 		}
 
