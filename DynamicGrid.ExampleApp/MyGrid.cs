@@ -40,6 +40,7 @@ namespace DynamicGrid.ExampleApp
 			//InvalidateRow(5);
 			//InvalidateRow(7);
 			InvalidateCell(10, 5);
+			//InvalidateColumn(Columns.ElementAt(3));
 		}
 	}
 }

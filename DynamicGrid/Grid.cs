@@ -147,11 +147,29 @@ namespace DynamicGrid
 			InvalidateData(row, row, minColumn, maxColumn);
 		}
 
+		public void InvalidateRow(TRow row)
+		{
+			var (minRow, maxRow) = VisibleRows;
+
+			for (var r = minRow; r <= maxRow; r++)
+				if (Equals(_rowSupplier.Get(r), row))
+					InvalidateRow(r);
+		}
+
 		public void InvalidateColumn(int column)
 		{
 			var (minRow, maxRow) = VisibleRows;
 
 			InvalidateData(minRow, maxRow, column, column);
+		}
+
+		public void InvalidateColumn(Column<TRow> column)
+		{
+			var (minColumn, maxColumn) = VisibleColumns;
+
+			for (var c = minColumn; c <= maxColumn; c++)
+				if (_columns[c] == column)
+					InvalidateColumn(c);
 		}
 
 		public void InvalidateCell(int row, int column)
