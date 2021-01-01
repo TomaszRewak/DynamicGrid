@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DynamicGrid.ExampleApp
 {
-	internal class MyRowSupplier : IRowSupplier<MyRow>
+	internal class MyDataSupplier : IDataSupplier<MyRow>
 	{
 		List<MyRow> _rows = Enumerable.Range(0, 200).Select(r => new MyRow(r)).ToList();
 

@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace DynamicGrid
 {
-	public interface IRowSupplier<TRow>
+	public class CellEventArgs : EventArgs
 	{
-		TRow Get(int row);
+		public int Coulmn { get; init; }
+		public int Row { get; init; }
 	}
 }

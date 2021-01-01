@@ -12,7 +12,7 @@ namespace DynamicGrid.ExampleApp
 {
 	public partial class Form1 : Form
 	{
-		private readonly MyRowSupplier _rowSupplier = new MyRowSupplier();
+		private readonly MyDataSupplier _dataSupplier = new MyDataSupplier();
 
 		public Form1()
 		{
@@ -23,7 +23,7 @@ namespace DynamicGrid.ExampleApp
 			_gridHeader.Columns = columns;
 			_grid.Columns = columns;
 
-			_grid.RowSupplier = _rowSupplier;
+			_grid.DataSupplier = _dataSupplier;
 		}
 
 		private void OnHorizontalScrollBarValueChanged(object sender, EventArgs e)
@@ -34,7 +34,7 @@ namespace DynamicGrid.ExampleApp
 
 		private void OnVerticalScrollBarValueChanged(object sender, EventArgs e)
 		{
-			_rowSupplier.Offset = _verticalScrollBar.Value;
+			_dataSupplier.Offset = _verticalScrollBar.Value;
 			_grid.InvalidateData();
 		}
 

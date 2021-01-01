@@ -43,13 +43,13 @@ namespace DynamicGrid
 
 		public int RowHeight => _fontManager.FontHeight + 1;
 
-		private IRowSupplier<TRow> _rowSupplier;
-		public IRowSupplier<TRow> RowSupplier
+		private IDataSupplier<TRow> _dataSupplier;
+		public IDataSupplier<TRow> DataSupplier
 		{
-			get => _rowSupplier;
+			get => _dataSupplier;
 			set
 			{
-				_rowSupplier = value;
+				_dataSupplier = value;
 				InvalidateData();
 			}
 		}
@@ -152,7 +152,7 @@ namespace DynamicGrid
 			var (minRow, maxRow) = VisibleRows;
 
 			for (var r = minRow; r <= maxRow; r++)
-				if (Equals(_rowSupplier.Get(r), row))
+				if (Equals(_dataSupplier.Get(r), row))
 					InvalidateRow(r);
 		}
 
@@ -195,7 +195,7 @@ namespace DynamicGrid
 		private void RefreshData() =>
 		this.DispatchOnce(_dataInvalidationGuard, () =>
 		{
-			if (RowSupplier == null) return;
+			if (DataSupplier == null) return;
 
 			var (minRow, maxRow) = VisibleRows;
 			var (minColumn, maxColumn) = VisibleColumns;
@@ -215,7 +215,7 @@ namespace DynamicGrid
 
 			for (int rowIndex = minRow, rowOffset = initialRowOffset; rowIndex <= maxRow; rowIndex++, rowOffset += RowHeight)
 			{
-				var row = RowSupplier.Get(rowIndex);
+				var row = DataSupplier.Get(rowIndex);
 
 				for (int columnIndex = minColumn, columnOffset = initialColumnOffset; columnIndex <= maxColumn; columnOffset += _columns[columnIndex++].Width)
 				{
@@ -271,6 +271,11 @@ namespace DynamicGrid
 			Invalidate();
 		}
 
+		protected override void OnClick(EventArgs e)
+		{
+			base.OnClick(e);
+		}
+
 		private void OnColumnWidthChanged(object sender, EventArgs e)
 		{
 			ClearBuffers();
@@ -291,10 +296,26 @@ namespace DynamicGrid
 			return row * RowHeight;
 		}
 
+		//private int GetColumnByOffset(int offset)
+		//{
+
+		//}
+
+		//private int GetRowByOffset(int offset)
+		//{
+
+		//}
+
 		private void ClearBuffers()
 		{
 			_cellBuffer.Clear(BackColor);
 			_displayBuffer.Clear(BackColor);
 		}
+
+		//public event EventHandler<CellEventArgs> CellClick;
+		//public event EventHandler<CellEventArgs> CellDoubleClick;
+		//public event EventHandler<CellEventArgs> CellMouseDown;
+		//public event EventHandler<CellEventArgs> CellMouseUp;
+		//public event EventHandler<CellEventArgs> CellMouseMove;
 	}
 }
