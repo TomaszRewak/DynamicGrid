@@ -8,8 +8,9 @@ using System.Windows.Threading;
 
 namespace DynamicGrid.ExampleApp
 {
-	class MyGrid : Grid<MyRow>
+	internal sealed class MyGrid : Grid
 	{
+		private readonly List<MyRow> _rows = Enumerable.Range(0, 200).Select(r => new MyRow(r)).ToList();
 		private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
 		private int _stopwatchCounter;
 
@@ -22,6 +23,18 @@ namespace DynamicGrid.ExampleApp
 				DispatcherPriority.Background,
 				(e, a) => Step(),
 				Dispatcher.CurrentDispatcher);
+		}
+
+		public int Offset { get; set; }
+
+		override public Cell GetCell(int row, int column)
+		{
+			row += Offset;
+
+			if (row >= 0 && row < _rows.Count)
+				return _rows[row];
+
+			return null;
 		}
 
 		private void Step()

@@ -8,18 +8,20 @@ using System.Windows.Forms;
 
 namespace DynamicGrid.ExampleApp
 {
-	internal class MyColumn : Column<MyRow>
+	internal class MyColumn : Column
 	{
 		private readonly MyGrid _grid;
 		private readonly int _index;
 
-		public MyColumn(MyGrid grid, int index) : base($"my column {index}", 100)
+		public MyColumn(MyGrid grid, int index) : base($"my column {index}")
 		{
 			_grid = grid;
 			_index = index;
+
+			Width = 100;
 		}
 
-		public override Cell GetCell(MyRow row)
+		public Cell GetCell(MyRow row)
 		{
 			if (row == null)
 				return Cell.Empty;

@@ -6,28 +6,25 @@ using System.Threading.Tasks;
 
 namespace DynamicGrid
 {
-	public abstract class Column<TRow>
+	public abstract class Column
 	{
 		public string Header { get; }
 
-		private int _width;
+		private int _width = 50;
 		public int Width
 		{
 			get => _width;
-			internal set
+			set
 			{
 				_width = value;
 				WidthChanged?.Invoke(this, EventArgs.Empty);
 			}
 		}
 
-		protected Column(string header, int width = 50)
+		protected Column(string header)
 		{
 			Header = header;
-			Width = width;
 		}
-
-		public abstract Cell GetCell(TRow row);
 
 		public event EventHandler WidthChanged;
 	}
