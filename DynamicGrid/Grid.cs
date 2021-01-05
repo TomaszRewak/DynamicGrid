@@ -41,17 +41,6 @@ namespace DynamicGrid
 
 		public int RowHeight => _fontManager.FontHeight + 1;
 
-		private IDataSupplier _dataSupplier;
-		public IDataSupplier DataSupplier
-		{
-			get => _dataSupplier;
-			set
-			{
-				_dataSupplier = value;
-				InvalidateData();
-			}
-		}
-
 		private int _horizontalOffset;
 		public int HorizontalOffset
 		{
@@ -159,8 +148,6 @@ namespace DynamicGrid
 		private void RefreshData() =>
 		this.DispatchOnce(_dataInvalidationGuard, () =>
 		{
-			if (DataSupplier == null) return;
-
 			var (minRow, maxRow) = VisibleRows;
 			var (minColumn, maxColumn) = VisibleColumns;
 
@@ -181,7 +168,7 @@ namespace DynamicGrid
 			{
 				for (int columnIndex = minColumn, columnOffset = initialColumnOffset; columnIndex <= maxColumn; columnOffset += _columnWidths[columnIndex++])
 				{
-					var cell = DataSupplier.GetCell(rowIndex, columnIndex);
+					var cell = GetCell(rowIndex, columnIndex);
 					var changed = _cellBuffer.TrySet(rowIndex, columnIndex, in cell);
 
 					if (changed)

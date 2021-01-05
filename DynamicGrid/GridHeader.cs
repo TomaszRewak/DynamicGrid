@@ -8,15 +8,15 @@ using System.Windows.Forms;
 namespace DynamicGrid
 {
 	[System.ComponentModel.DesignerCategory("")]
-	public class GridHeader<TColumn> : Control where TColumn : Column
+	public class GridHeader : Control
 	{
 		private readonly Control _container;
 		private readonly object _dragData = new();
 
 		private int? _draggedColumn;
 
-		private TColumn[] _columns = Array.Empty<TColumn>();
-		public IReadOnlyCollection<TColumn> Columns
+		private Column[] _columns = Array.Empty<Column>();
+		public IReadOnlyCollection<Column> Columns
 		{
 			get => _columns.ToArray();
 			set
@@ -97,7 +97,7 @@ namespace DynamicGrid
 		{
 			if (disposing)
 			{
-				Columns = Array.Empty<TColumn>();
+				Columns = Array.Empty<Column>();
 			}
 
 			base.Dispose(disposing);
@@ -226,7 +226,7 @@ namespace DynamicGrid
 		private void MoveColumn(int from, int to)
 		{
 			var column = _columns[from];
-			var columns = new List<TColumn>(_columns);
+			var columns = new List<Column>(_columns);
 
 			columns.RemoveAt(from);
 			columns.Insert(to, column);
@@ -236,7 +236,7 @@ namespace DynamicGrid
 
 		private void RemoveColumn(int index)
 		{
-			var columns = new List<TColumn>(_columns);
+			var columns = new List<Column>(_columns);
 
 			columns.RemoveAt(index);
 

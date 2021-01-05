@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace DynamicGrid
 {
-	public abstract class Column
+	public sealed class Column
 	{
-		public string Header { get; }
+		public string Header { get; init; }
+		public int Id { get; init; }
 
 		private int _width = 50;
 		public int Width
@@ -19,11 +20,6 @@ namespace DynamicGrid
 				_width = value;
 				WidthChanged?.Invoke(this, EventArgs.Empty);
 			}
-		}
-
-		protected Column(string header)
-		{
-			Header = header;
 		}
 
 		public event EventHandler WidthChanged;
