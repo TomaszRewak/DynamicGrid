@@ -66,6 +66,13 @@ namespace DynamicGrid
 			}
 		}
 
+		private int _verticalOffset;
+		public int VerticalOffset
+		{
+			get => _verticalOffset;
+			set
+		}
+
 		private (int MinColumn, int MaxColumn) VisibleColumns
 		{
 			get
