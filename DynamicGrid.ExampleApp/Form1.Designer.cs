@@ -9,7 +9,7 @@ namespace DynamicGrid.ExampleApp
 	{
 		private void InitializeComponent()
 		{
-			_gridHeader = new GridHeader();
+			_gridHeader = new GridHeader<MyRow>();
 			_grid = new MyGrid();
 			_horizontalScrollBar = new HScrollBar();
 			_verticalScrollBar = new VScrollBar();
@@ -57,7 +57,7 @@ namespace DynamicGrid.ExampleApp
 			ResumeLayout(false);
 		}
 
-		private GridHeader _gridHeader;
+		private GridHeader<MyRow> _gridHeader;
 		private MyGrid _grid;
 		private HScrollBar _horizontalScrollBar;
 		private VScrollBar _verticalScrollBar;

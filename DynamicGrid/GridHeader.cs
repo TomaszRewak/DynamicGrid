@@ -15,16 +15,16 @@ namespace DynamicGrid
 
 		private int? _draggedColumn;
 
-		private NamedColumn<TRow>[] _columns = Array.Empty<NamedColumn<TRow>>();
-		public IReadOnlyCollection<NamedColumn<TRow>> Columns
+		private IReadOnlyList<NamedColumn<TRow>> _columns = Array.Empty<NamedColumn<TRow>>();
+		public IReadOnlyList<NamedColumn<TRow>> Columns
 		{
-			get => _columns.ToArray();
+			get => _columns;
 			set
 			{
 				foreach (var column in _columns)
 					column.WidthChanged -= OnColumnWidthChanged;
 
-				_columns = value.ToArray();
+				_columns = value.ToList().AsReadOnly();
 
 				foreach (var column in _columns)
 					column.WidthChanged += OnColumnWidthChanged;
@@ -106,10 +106,10 @@ namespace DynamicGrid
 		private void Rebuild()
 		{
 			SplitContainer topSplitter = null;
-			for (int i = _columns.Length - 1; i >= 0; i--)
+			for (int i = Columns.Count - 1; i >= 0; i--)
 			{
 				var columnIndex = i;
-				var column = _columns[columnIndex];
+				var column = Columns[columnIndex];
 				var label = new Label
 				{
 					Text = column.Header,
@@ -227,8 +227,8 @@ namespace DynamicGrid
 
 		private void MoveColumn(int from, int to)
 		{
-			var column = _columns[from];
-			var columns = new List<NamedColumn<TRow>>(_columns);
+			var column = Columns[from];
+			var columns = new List<NamedColumn<TRow>>(Columns);
 
 			columns.RemoveAt(from);
 			columns.Insert(to, column);
@@ -238,7 +238,7 @@ namespace DynamicGrid
 
 		private void RemoveColumn(int index)
 		{
-			var columns = new List<NamedColumn<TRow>>(_columns);
+			var columns = new List<NamedColumn<TRow>>(Columns);
 
 			columns.RemoveAt(index);
 

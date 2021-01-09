@@ -10,8 +10,9 @@ using System.Windows.Threading;
 
 namespace DynamicGrid.ExampleApp
 {
-	internal sealed class MyGrid : Grid
+	internal sealed class MyGrid : Grid<MyRow>
 	{
+		private readonly List<MyRow> _rows = Enumerable.Range(0, 100).Select(i => new MyRow(i)).ToList();
 		private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
 		private int _stopwatchCounter;
 
@@ -26,19 +27,14 @@ namespace DynamicGrid.ExampleApp
 				Dispatcher.CurrentDispatcher);
 		}
 
-		public int Offset { get; set; }
-		public 
-
-		override public Cell GetCell(int row, int column)
+		public override MyRow GetRow(int rowIndex)
 		{
-			var now = DateTime.Now;
+			return _rows[rowIndex];
+		}
 
-			var color = Color.FromArgb(
-				(int)((1 + Math.Sin((double)now.Ticks / 10000000 + column * 0.05 + row* 0.05)) / 2 * 255),
-				(int)((1 + Math.Sin((double)now.Ticks / 20000000 + column * 0.1 + row * 0.2)) / 2 * 255),
-				(int)((1 + Math.Sin((double)now.Ticks / 30000000 + column * 0.5 + row * 0.05)) / 2 * 255));
-
-			return new Cell($"{Fps:####}fps X {now.Millisecond:D3}", HorizontalAlignment.Center, color);
+		public override bool ValidateRow(int rowIndex)
+		{
+			return rowIndex >= 0 && rowIndex < _rows.Count;
 		}
 
 		private void Step()

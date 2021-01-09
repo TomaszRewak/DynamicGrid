@@ -12,8 +12,6 @@ namespace DynamicGrid.ExampleApp
 {
 	public partial class Form1 : Form
 	{
-		private Column
-
 		public Form1()
 		{
 			InitializeComponent();
@@ -21,9 +19,7 @@ namespace DynamicGrid.ExampleApp
 			var columns = Enumerable.Range(0, 20).Select(c => new MyColumn(_grid, c)).ToArray();
 
 			_gridHeader.Columns = columns;
-			_grid.ColumnWidths = columns;
-
-			_grid.DataSupplier = _dataSupplier;
+			_grid.Columns = columns;
 		}
 
 		private void OnHorizontalScrollBarValueChanged(object sender, EventArgs e)
@@ -34,7 +30,7 @@ namespace DynamicGrid.ExampleApp
 
 		private void OnVerticalScrollBarValueChanged(object sender, EventArgs e)
 		{
-			_dataSupplier.Offset = _verticalScrollBar.Value;
+			//_dataSupplier.Offset = _verticalScrollBar.Value;
 			_grid.InvalidateData();
 		}
 
@@ -45,7 +41,7 @@ namespace DynamicGrid.ExampleApp
 
 		private void OnColumnsChanged(object sender, EventArgs e)
 		{
-			_grid.ColumnWidths = _gridHeader.Columns;
+			_grid.Columns = _gridHeader.Columns;
 		}
 
 		protected override void OnSizeChanged(EventArgs e)

@@ -11,7 +11,7 @@ using System.Windows.Forms;
 namespace DynamicGrid
 {
 	[System.ComponentModel.DesignerCategory("")]
-	public class Grid : Control
+	public abstract class Grid<TRow> : Control
 	{
 		private readonly Graphics _graphics;
 		private readonly IntPtr _graphicsHdc;
@@ -21,19 +21,23 @@ namespace DynamicGrid
 		private readonly Ref<bool> _dataInvalidationGuard = new();
 		private Rectangle _invalidDataRegion = Rectangle.Empty;
 
-		private int[] _columnWidths = Array.Empty<int>();
-		public IReadOnlyCollection<int> ColumnWidths
+		private IReadOnlyList<Column<TRow>> _columns = Array.Empty<Column<TRow>>();
+		public IReadOnlyList<Column<TRow>> Columns
 		{
-			get => _columnWidths.ToArray();
+			get => _columns;
 			set
 			{
-				_columnWidths = value.ToArray();
+				foreach (var column in _columns)
+					column.WidthChanged -= OnColumnWidthChanged;
 
-				ColumnsWidth = _columnWidths.Sum();
+				_columns = value.ToList().AsReadOnly();
 
-				ClearBuffers();
-				InvalidateData();
-				Invalidate();
+				foreach (var column in _columns)
+					column.WidthChanged += OnColumnWidthChanged; ;
+
+				ColumnsWidth = _columns.Sum(c => c.Width);
+
+				InvalidateBuffers();
 			}
 		}
 
@@ -69,12 +73,12 @@ namespace DynamicGrid
 				var offset = 0;
 
 				var minColumn = 0;
-				while (minColumn < _columnWidths.Length - 1 && offset + _columnWidths[minColumn] < HorizontalOffset)
-					offset += _columnWidths[minColumn++];
+				while (minColumn < Columns.Count - 1 && offset + Columns[minColumn].Width < HorizontalOffset)
+					offset += Columns[minColumn++].Width;
 
 				var maxColumn = minColumn;
-				while (maxColumn < _columnWidths.Length - 1 && offset + _columnWidths[maxColumn] < HorizontalOffset + Width)
-					offset += _columnWidths[maxColumn++];
+				while (maxColumn < Columns.Count - 1 && offset + Columns[maxColumn].Width < HorizontalOffset + Width)
+					offset += Columns[maxColumn++].Width;
 
 				return (minColumn, maxColumn);
 			}
@@ -98,9 +102,16 @@ namespace DynamicGrid
 			_fontManager.Load(Font);
 		}
 
-		public virtual Cell GetCell(int row, int column)
+		public abstract TRow GetRow(int rowIndex);
+		public virtual bool ValidateRow(int rowIndex) => true;
+		public virtual Cell StyleCell(int rowIndex, int columnIndex, Cell cell) => cell;
+
+		private void InvalidateBuffers()
 		{
-			return Cell.Empty;
+			_cellBuffer.Clear(BackColor);
+			_displayBuffer.Clear(BackColor);
+
+			InvalidateData();
 		}
 
 		public void InvalidateData()
@@ -156,7 +167,7 @@ namespace DynamicGrid
 			minRow = Math.Max(minRow, _invalidDataRegion.Top);
 			maxRow = Math.Min(maxRow, _invalidDataRegion.Bottom);
 
-			_cellBuffer.Resize(_columnWidths.Length, Height / RowHeight + 1);
+			_cellBuffer.Resize(Columns.Count, Height / RowHeight + 1);
 			_displayBuffer.Resize(new Size(Math.Max(ColumnsWidth, Width + HorizontalOffset), Height));
 
 			var initialColumnOffset = GetColumnOffset(minColumn);
@@ -166,13 +177,19 @@ namespace DynamicGrid
 
 			for (int rowIndex = minRow, rowOffset = initialRowOffset; rowIndex <= maxRow; rowIndex++, rowOffset += RowHeight)
 			{
-				for (int columnIndex = minColumn, columnOffset = initialColumnOffset; columnIndex <= maxColumn; columnOffset += _columnWidths[columnIndex++])
+				var hasRow = ValidateRow(rowIndex);
+				var row = hasRow ? GetRow(rowIndex) : default;
+
+				for (int columnIndex = minColumn, columnOffset = initialColumnOffset; columnIndex <= maxColumn; columnOffset += Columns[columnIndex++].Width)
 				{
-					var cell = GetCell(rowIndex, columnIndex);
+					var column = Columns[columnIndex];
+					var cell = hasRow
+						? StyleCell(rowIndex, columnIndex, column.GetCell(row))
+						: Cell.Empty;
 					var changed = _cellBuffer.TrySet(rowIndex, columnIndex, in cell);
 
 					if (changed)
-						drawingContext.Draw(columnOffset, rowOffset, _columnWidths[columnIndex], RowHeight, cell);
+						drawingContext.Draw(columnOffset, rowOffset, Columns[columnIndex].Width, RowHeight, cell);
 				}
 			}
 
@@ -204,8 +221,7 @@ namespace DynamicGrid
 		{
 			base.OnBackColorChanged(e);
 
-			ClearBuffers();
-			Invalidate();
+			InvalidateBuffers();
 		}
 
 		protected override void OnFontChanged(EventArgs e)
@@ -214,9 +230,12 @@ namespace DynamicGrid
 
 			_fontManager.Load(Font);
 
-			ClearBuffers();
-			InvalidateData();
-			Invalidate();
+			InvalidateBuffers();
+		}
+
+		private void OnColumnWidthChanged(object sender, EventArgs e)
+		{
+			InvalidateBuffers();
 		}
 
 		protected override void OnClick(EventArgs e)
@@ -228,7 +247,7 @@ namespace DynamicGrid
 		{
 			var offset = 0;
 			for (var c = 0; c < column; c++)
-				offset += _columnWidths[c];
+				offset += Columns[c].Width;
 			return offset;
 		}
 
@@ -246,12 +265,6 @@ namespace DynamicGrid
 		//{
 
 		//}
-
-		private void ClearBuffers()
-		{
-			_cellBuffer.Clear(BackColor);
-			_displayBuffer.Clear(BackColor);
-		}
 
 		//public event EventHandler<CellEventArgs> CellClick;
 		//public event EventHandler<CellEventArgs> CellDoubleClick;

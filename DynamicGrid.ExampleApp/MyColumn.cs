@@ -21,7 +21,7 @@ namespace DynamicGrid.ExampleApp
 			Width = 100;
 		}
 
-		public Cell GetCell(MyRow row)
+		public override Cell GetCell(MyRow row)
 		{
 			if (row == null)
 				return Cell.Empty;
