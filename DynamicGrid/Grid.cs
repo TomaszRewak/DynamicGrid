@@ -37,7 +37,7 @@ namespace DynamicGrid
 			}
 		}
 
-		public int ColumnsWidth { get; set; }
+		public int ColumnsWidth { get; private set; }
 
 		public int RowHeight => _fontManager.FontHeight + 1;
 

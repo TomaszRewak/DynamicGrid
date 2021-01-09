@@ -12,7 +12,7 @@ namespace DynamicGrid.ExampleApp
 {
 	public partial class Form1 : Form
 	{
-		private readonly MyDataSupplier _dataSupplier = new MyDataSupplier();
+		private Column
 
 		public Form1()
 		{
@@ -38,9 +38,9 @@ namespace DynamicGrid.ExampleApp
 			_grid.InvalidateData();
 		}
 
-		private void OnColumnsWidthChanged(object sender, EventArgs e)
+		private void OnTotalColumnWidthChanged(object sender, EventArgs e)
 		{
-			_horizontalScrollBar.Maximum = Math.Max(0, _gridHeader.ColumnsWidths);
+			_horizontalScrollBar.Maximum = Math.Max(0, _gridHeader.TotalColumnWdith);
 		}
 
 		private void OnColumnsChanged(object sender, EventArgs e)

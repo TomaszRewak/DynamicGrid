@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace DynamicGrid.ExampleApp
 {
-	internal class MyColumn : Column
+	internal class MyColumn : NamedColumn<MyRow>
 	{
 		private readonly MyGrid _grid;
 		private readonly int _index;

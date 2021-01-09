@@ -9,7 +9,7 @@ namespace DynamicGrid.ExampleApp
 	{
 		private void InitializeComponent()
 		{
-			_gridHeader = new MyGridHeader();
+			_gridHeader = new GridHeader();
 			_grid = new MyGrid();
 			_horizontalScrollBar = new HScrollBar();
 			_verticalScrollBar = new VScrollBar();
@@ -21,7 +21,7 @@ namespace DynamicGrid.ExampleApp
 			_gridHeader.Name = "gridHeader";
 			_gridHeader.Size = new Size(770, 40);
 			_gridHeader.TabIndex = 0;
-			_gridHeader.ColumnsWidthChanged += OnColumnsWidthChanged;
+			_gridHeader.TotalColumnWidthChanged += OnTotalColumnWidthChanged;
 			_gridHeader.ColumnsChanged += OnColumnsChanged;
 
 			_grid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
@@ -57,7 +57,7 @@ namespace DynamicGrid.ExampleApp
 			ResumeLayout(false);
 		}
 
-		private MyGridHeader _gridHeader;
+		private GridHeader _gridHeader;
 		private MyGrid _grid;
 		private HScrollBar _horizontalScrollBar;
 		private VScrollBar _verticalScrollBar;

@@ -8,15 +8,15 @@ using System.Windows.Forms;
 namespace DynamicGrid
 {
 	[System.ComponentModel.DesignerCategory("")]
-	public class GridHeader : Control
+	public class GridHeader<TRow> : Control
 	{
 		private readonly Control _container;
 		private readonly object _dragData = new();
 
 		private int? _draggedColumn;
 
-		private Column[] _columns = Array.Empty<Column>();
-		public IReadOnlyCollection<Column> Columns
+		private NamedColumn<TRow>[] _columns = Array.Empty<NamedColumn<TRow>>();
+		public IReadOnlyCollection<NamedColumn<TRow>> Columns
 		{
 			get => _columns.ToArray();
 			set
@@ -36,17 +36,17 @@ namespace DynamicGrid
 			}
 		}
 
-		private int _columnWidths;
-		public int ColumnsWidths
+		private int _totalColumnWidth;
+		public int TotalColumnWdith
 		{
-			get => _columnWidths;
+			get => _totalColumnWidth;
 			private set
 			{
-				if (_columnWidths == value) return;
+				if (_totalColumnWidth == value) return;
 
-				_columnWidths = value;
+				_totalColumnWidth = value;
 
-				ColumnsWidthChanged?.Invoke(this, EventArgs.Empty);
+				TotalColumnWidthChanged?.Invoke(this, EventArgs.Empty);
 			}
 		}
 
@@ -97,7 +97,7 @@ namespace DynamicGrid
 		{
 			if (disposing)
 			{
-				Columns = Array.Empty<Column>();
+				Columns = Array.Empty<NamedColumn<TRow>>();
 			}
 
 			base.Dispose(disposing);
@@ -203,7 +203,7 @@ namespace DynamicGrid
 
 		private void UpdateColumnsWidth()
 		{
-			ColumnsWidths = Columns.Sum(c => c.Width);
+			TotalColumnWdith = Columns.Sum(c => c.Width);
 		}
 
 		protected override void OnSizeChanged(EventArgs e)
@@ -221,12 +221,14 @@ namespace DynamicGrid
 		private void OnColumnWidthChanged(object sender, EventArgs e)
 		{
 			UpdateColumnsWidth();
+
+			ColumnsResized?.Invoke(this, EventArgs.Empty);
 		}
 
 		private void MoveColumn(int from, int to)
 		{
 			var column = _columns[from];
-			var columns = new List<Column>(_columns);
+			var columns = new List<NamedColumn<TRow>>(_columns);
 
 			columns.RemoveAt(from);
 			columns.Insert(to, column);
@@ -236,7 +238,7 @@ namespace DynamicGrid
 
 		private void RemoveColumn(int index)
 		{
-			var columns = new List<Column>(_columns);
+			var columns = new List<NamedColumn<TRow>>(_columns);
 
 			columns.RemoveAt(index);
 
@@ -244,6 +246,7 @@ namespace DynamicGrid
 		}
 
 		public event EventHandler ColumnsChanged;
-		public event EventHandler ColumnsWidthChanged;
+		public event EventHandler ColumnsResized;
+		public event EventHandler TotalColumnWidthChanged;
 	}
 }

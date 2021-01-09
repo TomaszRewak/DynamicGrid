@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Windows.Threading;
 
 namespace DynamicGrid.ExampleApp
 {
 	internal sealed class MyGrid : Grid
 	{
-		private readonly List<MyRow> _rows = Enumerable.Range(0, 200).Select(r => new MyRow(r)).ToList();
 		private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
 		private int _stopwatchCounter;
 
@@ -26,15 +27,18 @@ namespace DynamicGrid.ExampleApp
 		}
 
 		public int Offset { get; set; }
+		public 
 
 		override public Cell GetCell(int row, int column)
 		{
-			row += Offset;
+			var now = DateTime.Now;
 
-			if (row >= 0 && row < _rows.Count)
-				return _rows[row];
+			var color = Color.FromArgb(
+				(int)((1 + Math.Sin((double)now.Ticks / 10000000 + column * 0.05 + row* 0.05)) / 2 * 255),
+				(int)((1 + Math.Sin((double)now.Ticks / 20000000 + column * 0.1 + row * 0.2)) / 2 * 255),
+				(int)((1 + Math.Sin((double)now.Ticks / 30000000 + column * 0.5 + row * 0.05)) / 2 * 255));
 
-			return null;
+			return new Cell($"{Fps:####}fps X {now.Millisecond:D3}", HorizontalAlignment.Center, color);
 		}
 
 		private void Step()
