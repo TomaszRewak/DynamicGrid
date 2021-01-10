@@ -1,6 +1,7 @@
 ﻿using DynamicGrid.Interop;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -9,17 +10,78 @@ using System.Windows.Forms;
 
 namespace DynamicGrid.Buffers
 {
-	internal sealed class DisplayBuffer : IDisposable
+	internal sealed class GridBuffer : IDisposable
 	{
 		private readonly IntPtr _parentHdc;
 
 		private BufferedGraphics _buffer;
 		private IntPtr _bufferHdc;
 		private Size _bufferSize;
-
 		private Color _backgroundColor;
+		private Cell[,] _cells = new Cell[0, 0];
 
-		public DisplayBuffer(IntPtr parentHdc)
+		private int[] _columnWidths;
+		public int[] ColumnWidths
+		{
+			get => _columnWidths;
+			set
+			{
+				if (_columnWidths == value) return;
+				_columnWidths = value;
+
+				UpdateColumnOffsets();
+			}
+		}
+
+		private List<(int CellOffset, int DisplayOffset)> ColumnOffsets { get; } = new();
+
+		private int _rowHeight;
+		public int RowHeight
+		{
+			get => _rowHeight;
+			set
+			{
+				if (_rowHeight == value) return;
+				_rowHeight = value;
+			}
+		}
+
+		private Size _parentSize;
+		public Size ParentSize
+		{
+			get => _parentSize;
+			set
+			{
+				if (_parentSize == value) return;
+				_parentSize = value;
+			}
+		}
+
+		private int _verticalOffset;
+		public int VerticalOffset
+		{
+			get => _verticalOffset;
+			set
+			{
+				if (_verticalOffset == value) return;
+				_verticalOffset = value;
+			}
+		}
+
+		private int _horizontalOffset;
+		public int HorizontalOffset
+		{
+			get => _horizontalOffset;
+			set
+			{
+				if (_horizontalOffset == value) return;
+				_horizontalOffset = value;
+			}
+		}
+
+		private int VisibleRows { get; private set; }
+
+		public GridBuffer(IntPtr parentHdc)
 		{
 			_parentHdc = parentHdc;
 		}
@@ -35,6 +97,11 @@ namespace DynamicGrid.Buffers
 			_bufferHdc = IntPtr.Zero;
 		}
 
+		public DrawingContext CreateDrawingContext()
+		{
+			return new DrawingContext(_bufferHdc, _backgroundColor);
+		}
+
 		public void Clear(Color color)
 		{
 			_backgroundColor = color;
@@ -43,7 +110,7 @@ namespace DynamicGrid.Buffers
 			Gdi32.Fill(_bufferHdc, new Rectangle(Point.Empty, _bufferSize));
 		}
 
-		public void Resize(Size size)
+		public void Resize<TRow>(Size size, IEnumerable<Column<TRow>> columns, int rowHeight)
 		{
 			if (size.Width <= _bufferSize.Width && size.Height <= _bufferSize.Height)
 				return;
@@ -65,11 +132,6 @@ namespace DynamicGrid.Buffers
 			_buffer = newBuffer;
 			_bufferHdc = newBufferHdc;
 			_bufferSize = newBufferSize;
-		}
-
-		public DisplayBufferContext CreateDrawingContext()
-		{
-			return new DisplayBufferContext(_bufferHdc, _backgroundColor);
 		}
 
 		public void Flush(Rectangle rectangle, int offsetX)
