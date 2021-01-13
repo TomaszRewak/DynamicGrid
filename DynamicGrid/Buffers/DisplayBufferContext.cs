@@ -12,9 +12,11 @@ namespace DynamicGrid.Buffers
 {
 	internal sealed partial class GridBuffer
 	{
-		public sealed class DrawingContext
+		public ref struct DrawingContext
 		{
-			private readonly int[] _columnWidths;
+			private readonly ReadOnlySpan<ColumnPlacement> _columns;
+			private readonly int _columnOffset;
+			private readonly int _rowOffset;
 
 			private Color? _currentColor;
 			private HorizontalAlignment? _currentAlignemnt;
@@ -34,8 +36,8 @@ namespace DynamicGrid.Buffers
 				Debug.Assert(row * RowHeight < VerticalOffset + ParentSize.Height);
 				Debug.Assert(row * RowHeight + RowHeight > VerticalOffset);
 
-				row = (row % VisibleRows + VisibleRows) % VisibleRows;
 				column = _columnOffsets[column].CellOffset;
+				row = (row % VisibleRows + VisibleRows) % VisibleRows;
 
 				if (_cells[row, column] == value) return;
 				_cells[row, column] = value;

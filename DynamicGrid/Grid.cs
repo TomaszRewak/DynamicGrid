@@ -182,12 +182,12 @@ namespace DynamicGrid
 
 			var drawingContext = _displayBuffer.CreateDrawingContext();
 
-			for (int rowIndex = minRow, rowOffset = initialRowOffset; rowIndex <= maxRow; rowIndex++, rowOffset += RowHeight)
+			for (int rowIndex = minRow; rowIndex <= maxRow; rowIndex++)
 			{
 				var hasRow = ValidateRow(rowIndex);
 				var row = hasRow ? GetRow(rowIndex) : default;
 
-				for (int columnIndex = minColumn, columnOffset = initialColumnOffset; columnIndex <= maxColumn; columnOffset += Columns[columnIndex++].Width)
+				for (int columnIndex = minColumn; columnIndex <= maxColumn; columnIndex++)
 				{
 					var column = Columns[columnIndex];
 					var cell = hasRow
@@ -196,7 +196,7 @@ namespace DynamicGrid
 					var changed = _cellBuffer.TrySet(rowIndex, columnIndex, in cell);
 
 					if (changed)
-						drawingContext.Draw(columnOffset, rowOffset, Columns[columnIndex].Width, RowHeight, cell);
+						drawingContext.Draw(columnIndex, rowIndex, cell);
 				}
 			}
 
