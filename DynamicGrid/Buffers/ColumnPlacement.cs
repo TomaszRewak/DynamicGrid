@@ -8,13 +8,17 @@ namespace DynamicGrid.Buffers
 {
 	internal readonly struct ColumnPlacement
 	{
-		public readonly int Offset;
 		public readonly int Width;
+		public readonly int CroppedIndex;
+		public readonly int CroppedOffset;
+		public readonly int RealOffset;
 
-		public ColumnPlacement(int offset, int width) : this()
+		public ColumnPlacement(int width, int croppedIndex, int croppedOffset, int realOffset)
 		{
-			Offset = offset;
 			Width = width;
+			CroppedIndex = croppedIndex;
+			CroppedOffset = croppedOffset;
+			RealOffset = realOffset;
 		}
 	}
 }
