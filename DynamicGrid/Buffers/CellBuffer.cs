@@ -18,14 +18,14 @@ namespace DynamicGrid.Buffers
 					_cells[y, x] = new Cell(color);
 		}
 
-		public void Resize(int width, int height)
+		public void Grow(int width, int height)
 		{
 			if (width <= Width && height <= Height)
 				return;
 
 			_cells = new Cell[
-				Math.Max(height, Height),
-				Math.Max(width, Width)];
+				Math.Max(height * 2, Height),
+				Math.Max(width * 2, Width)];
 		}
 
 		public bool TrySet(int row, int column, in Cell value)

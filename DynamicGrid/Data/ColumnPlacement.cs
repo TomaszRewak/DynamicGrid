@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DynamicGrid.Buffers
+namespace DynamicGrid.Data
 {
 	internal readonly struct ColumnPlacement
 	{

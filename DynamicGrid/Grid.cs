@@ -1,4 +1,6 @@
 ﻿using DynamicGrid.Buffers;
+using DynamicGrid.Data;
+using DynamicGrid.Interop;
 using DynamicGrid.Managers;
 using DynamicGrid.Threading;
 using System;
@@ -19,6 +21,7 @@ namespace DynamicGrid
 		private readonly DisplayBuffer _displayBuffer;
 		private readonly FontManager _fontManager;
 		private readonly Ref<bool> _dataInvalidationGuard = new();
+		private readonly List<ColumnPlacement> _columnPlacement = new();
 		private Rectangle _invalidDataRegion = Rectangle.Empty;
 
 		private IReadOnlyList<Column<TRow>> _columns = Array.Empty<Column<TRow>>();
@@ -174,13 +177,13 @@ namespace DynamicGrid
 			minRow = Math.Max(minRow, _invalidDataRegion.Top);
 			maxRow = Math.Min(maxRow, _invalidDataRegion.Bottom);
 
-			_cellBuffer.Resize(Columns.Count, Height / RowHeight + 1);
-			_displayBuffer.Resize(new Size(Math.Max(ColumnsWidth, Width + HorizontalOffset), Height));
+			_cellBuffer.Grow(Columns.Count, Height / RowHeight + 1);
+			_displayBuffer.Grow(Math.Max(ColumnsWidth, Width + HorizontalOffset), Height);
 
-			var initialColumnOffset = GetColumnOffset(minColumn);
-			var initialRowOffset = GetRowOffset(minRow);
-
-			var drawingContext = _displayBuffer.CreateDrawingContext();
+			var numberOfVisibleRows = maxRow - minRow + 1;
+			var currentColor = null as Color?;
+			var currentAlignemnt = null as HorizontalAlignment?;
+			var invalidatedRect = Rectangle.Empty;
 
 			for (int rowIndex = minRow; rowIndex <= maxRow; rowIndex++)
 			{
@@ -193,17 +196,52 @@ namespace DynamicGrid
 					var cell = hasRow
 						? StyleCell(rowIndex, columnIndex, column.GetCell(row))
 						: Cell.Empty;
+
+					var croppedRowIndex = (rowIndex % numberOfVisibleRows + numberOfVisibleRows) % numberOfVisibleRows;
+					var croppedColumnIndex = _columnPlacement[columnIndex].CroppedIndex;
 					var changed = _cellBuffer.TrySet(rowIndex, columnIndex, in cell);
 
-					if (changed)
-						drawingContext.Draw(columnIndex, rowIndex, cell);
+					if (!changed) continue;
+
+					var size = new Size(
+						_columnPlacement[columnIndex].Width - 1,
+						RowHeight - 1);
+					var realPosition = new Point(
+						_columnPlacement[columnIndex].RealOffset - HorizontalOffset,
+						RowHeight * rowIndex - VerticalOffset);
+					var croppedPosition = new Point(
+						_columnPlacement[columnIndex].CroppedOffset,
+						RowHeight * croppedRowIndex);
+					var realRectangle = new Rectangle(realPosition, size);
+					var croppedRectangle = new Rectangle(croppedPosition, size);
+
+					var textPosition = new Point(size.Width / 2, 0);
+					var cellColor = cell.Color.A == byte.MaxValue
+						? cell.Color
+						: BackColor;
+
+					if (currentColor != cellColor)
+					{
+						currentColor = cellColor;
+						Gdi32.SetBackgroundColor(_displayBuffer.Hdc, cellColor);
+					}
+
+					if (currentAlignemnt != cell.Alignment)
+					{
+						currentAlignemnt = cell.Alignment;
+						Gdi32.SetTextAlignemnt(_displayBuffer.Hdc, cell.Alignment);
+					}
+
+					Gdi32.PrintText(_displayBuffer.Hdc, croppedRectangle, textPosition, cell.Text);
+
+					invalidatedRect = invalidatedRect == Rectangle.Empty
+						? realRectangle
+						: Rectangle.Union(invalidatedRect, realRectangle);
 				}
 			}
 
 			_invalidDataRegion = Rectangle.Empty;
 
-			var invalidatedRect = drawingContext.InvalidatedRect;
-			invalidatedRect.Offset(-HorizontalOffset, 0);
 			Invalidate(invalidatedRect);
 
 			Trace.WriteLine($"{minColumn}:{maxColumn} {minRow}:{maxRow} {invalidatedRect}");
