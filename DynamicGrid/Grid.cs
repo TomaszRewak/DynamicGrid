@@ -55,15 +55,9 @@ namespace DynamicGrid
 			set
 			{
 				if (_horizontalOffset == value) return;
-
-				var oldVisibleColumns = VisibleColumns;
 				_horizontalOffset = value;
-				var newVisibleColumns = VisibleColumns;
 
-				for (int c = newVisibleColumns.MinColumn; c <= newVisibleColumns.MaxColumn && c < oldVisibleColumns.MinColumn; c++)
-					InvalidateColumn(c);
-				for (int c = newVisibleColumns.MaxColumn; c >= newVisibleColumns.MinColumn && c > oldVisibleColumns.MaxColumn; c--)
-					InvalidateColumn(c);
+				UpdateVisibleColumns();
 
 				Invalidate();
 			}
@@ -74,29 +68,56 @@ namespace DynamicGrid
 		{
 			get => _verticalOffset;
 			set
-		}
-
-		private (int MinColumn, int MaxColumn) VisibleColumns
-		{
-			get
 			{
-				var offset = 0;
+				if (_verticalOffset == value) return;
+				_verticalOffset = value;
 
-				var minColumn = 0;
-				while (minColumn < Columns.Count - 1 && offset + Columns[minColumn].Width < HorizontalOffset)
-					offset += Columns[minColumn++].Width;
+				var oldVisibleRows = VisibleRows;
+				UpdateVisibleRows();
+				var newVisibleRows = VisibleRows;
 
-				var maxColumn = minColumn;
-				while (maxColumn < Columns.Count - 1 && offset + Columns[maxColumn].Width < HorizontalOffset + Width)
-					offset += Columns[maxColumn++].Width;
+				for (int r = newVisibleRows.MinRow; r <= newVisibleRows.MaxRow && r < oldVisibleRows.MinRow; r++)
+					InvalidateColumn(r);
+				for (int r = newVisibleRows.MaxRow; r >= newVisibleRows.MinRow && r > oldVisibleRows.MaxRow; r--)
+					InvalidateColumn(r);
 
-				return (minColumn, maxColumn);
+				Invalidate();
 			}
 		}
 
-		private (int MinRow, int MaxRow) VisibleRows
+		private (int MinColumn, int MaxColumn) VisibleColumns { get; set; }
+		private void UpdateVisibleColumns()
 		{
-			get => (0, Height / RowHeight);
+			var offset = 0;
+
+			var minColumn = 0;
+			while (minColumn < _columnPlacement.Count - 1 && offset + _columnPlacement[minColumn].Width < HorizontalOffset)
+				offset += _columnPlacement[minColumn++].Width;
+
+			var maxColumn = minColumn;
+			while (maxColumn < _columnPlacement.Count - 1 && offset + _columnPlacement[maxColumn].Width < HorizontalOffset + Width)
+				offset += _columnPlacement[maxColumn++].Width;
+
+			for (int c = minColumn; c <= maxColumn && c < VisibleColumns.MinColumn; c++)
+				InvalidateColumn(c);
+			for (int c = maxColumn; c >= minColumn && c > VisibleColumns.MaxColumn; c--)
+				InvalidateColumn(c);
+
+			VisibleColumns = (minColumn, maxColumn);
+		}
+
+		private (int MinRow, int MaxRow) VisibleRows { get; set; }
+		private void UpdateVisibleRows()
+		{
+			var minRow = VerticalOffset / RowHeight - (VerticalOffset % RowHeight < 0 ? 1 : 0);
+			var maxRow = (VerticalOffset + Height - 1) / RowHeight + Math.Sign((VerticalOffset + Height - 1) % RowHeight);
+
+			for (int r = minRow; r <= maxRow && r < VisibleRows.MinRow; r++)
+				InvalidateColumn(r);
+			for (int r = maxRow; r >= minRow && r > VisibleRows.MaxRow; r--)
+				InvalidateColumn(r);
+
+			VisibleRows = (minRow, maxRow);
 		}
 
 		public Grid()
@@ -256,7 +277,7 @@ namespace DynamicGrid
 
 		protected override void OnPaint(PaintEventArgs e)
 		{
-			_displayBuffer.Flush(e.ClipRectangle, HorizontalOffset);
+			//Gdi32.Copy(_bufferHdc, new Point(rectangle.X + offsetX, rectangle.Y), _parentHdc, rectangle.Location, rectangle.Size);
 		}
 
 		protected override void OnPaintBackground(PaintEventArgs e)
@@ -286,19 +307,6 @@ namespace DynamicGrid
 		protected override void OnClick(EventArgs e)
 		{
 			base.OnClick(e);
-		}
-
-		private int GetColumnOffset(int column)
-		{
-			var offset = 0;
-			for (var c = 0; c < column; c++)
-				offset += Columns[c].Width;
-			return offset;
-		}
-
-		private int GetRowOffset(int row)
-		{
-			return row * RowHeight;
 		}
 
 		//private int GetColumnByOffset(int offset)

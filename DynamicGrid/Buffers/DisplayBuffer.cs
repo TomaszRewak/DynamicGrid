@@ -61,11 +61,5 @@ namespace DynamicGrid.Buffers
 			Gdi32.SetBackgroundColor(_bufferHdc, _backgroundColor);
 			Gdi32.Fill(_bufferHdc, new Rectangle(Point.Empty, _bufferSize));
 		}
-
-		public void Flush(Rectangle rectangle, int offsetX)
-		{
-			if (_buffer != null)
-				Gdi32.Copy(_bufferHdc, new Point(rectangle.X + offsetX, rectangle.Y), _parentHdc, rectangle.Location, rectangle.Size);
-		}
 	}
 }
