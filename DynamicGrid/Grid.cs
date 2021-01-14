@@ -13,7 +13,7 @@ using System.Windows.Forms;
 namespace DynamicGrid
 {
 	[System.ComponentModel.DesignerCategory("")]
-	public abstract class Grid<TRow> : Control
+	public abstract class Grid : Control
 	{
 		private readonly Graphics _graphics;
 		private readonly IntPtr _graphicsHdc;
@@ -21,32 +21,33 @@ namespace DynamicGrid
 		private readonly DisplayBuffer _displayBuffer;
 		private readonly FontManager _fontManager;
 		private readonly Ref<bool> _dataInvalidationGuard = new();
-		private readonly List<ColumnPlacement> _columnPlacement = new();
 		private Rectangle _invalidDataRegion = Rectangle.Empty;
 
-		private IReadOnlyList<Column<TRow>> _columns = Array.Empty<Column<TRow>>();
-		public IReadOnlyList<Column<TRow>> Columns
+		private readonly List<ColumnPlacement> _columns = new();
+		public IEnumerable<int> Columns
 		{
-			get => _columns;
+			get => _columns.Select(c => c.Width);
 			set
 			{
-				foreach (var column in _columns)
-					column.WidthChanged -= OnColumnWidthChanged;
+				var lastVisibleColumn = 0;
+				var visibleColumnsWidth = 0;
+				var croppedIndex = 0;
+				var croppedOffset = 0;
+				var realOffset = 0;
 
-				_columns = value.ToList().AsReadOnly();
+				foreach (var width in value)
+				{
+					_columns.Add(new ColumnPlacement(width, croppedIndex, croppedOffset, realOffset));
+				}
 
-				foreach (var column in _columns)
-					column.WidthChanged += OnColumnWidthChanged; ;
+				var visibleColumnsWidth
 
-				ColumnsWidth = _columns.Sum(c => c.Width);
+				while (maxColumn < _columns.Count)
+				{
 
-				InvalidateBuffers();
+				}
 			}
 		}
-
-		public int ColumnsWidth { get; private set; }
-
-		public int RowHeight => _fontManager.FontHeight + 1;
 
 		private int _horizontalOffset;
 		public int HorizontalOffset
@@ -85,18 +86,20 @@ namespace DynamicGrid
 			}
 		}
 
+		public int RowHeight => _fontManager.FontHeight + 1;
+
 		private (int MinColumn, int MaxColumn) VisibleColumns { get; set; }
 		private void UpdateVisibleColumns()
 		{
 			var offset = 0;
 
 			var minColumn = 0;
-			while (minColumn < _columnPlacement.Count - 1 && offset + _columnPlacement[minColumn].Width < HorizontalOffset)
-				offset += _columnPlacement[minColumn++].Width;
+			while (minColumn < _columns.Count - 1 && offset + _columns[minColumn].Width < HorizontalOffset)
+				offset += _columns[minColumn++].Width;
 
 			var maxColumn = minColumn;
-			while (maxColumn < _columnPlacement.Count - 1 && offset + _columnPlacement[maxColumn].Width < HorizontalOffset + Width)
-				offset += _columnPlacement[maxColumn++].Width;
+			while (maxColumn < _columns.Count - 1 && offset + _columns[maxColumn].Width < HorizontalOffset + Width)
+				offset += _columns[maxColumn++].Width;
 
 			for (int c = minColumn; c <= maxColumn && c < VisibleColumns.MinColumn; c++)
 				InvalidateColumn(c);
@@ -133,9 +136,15 @@ namespace DynamicGrid
 			_fontManager.Load(Font);
 		}
 
-		public abstract TRow GetRow(int rowIndex);
-		public virtual bool ValidateRow(int rowIndex) => true;
-		public virtual Cell StyleCell(int rowIndex, int columnIndex, Cell cell) => cell;
+		public virtual Cell GetCell(int rowIndex, int columnIndex) => Cell.Empty;
+
+		private void GrowBuffers()
+		{
+			_cellBuffer.Grow(Columns.Count, Height / RowHeight + 1);
+			_displayBuffer.Grow(Math.Max(ColumnsWidth, Width + HorizontalOffset), Height);
+
+			InvalidateBuffers();
+		}
 
 		private void InvalidateBuffers()
 		{
@@ -198,40 +207,33 @@ namespace DynamicGrid
 			minRow = Math.Max(minRow, _invalidDataRegion.Top);
 			maxRow = Math.Min(maxRow, _invalidDataRegion.Bottom);
 
-			_cellBuffer.Grow(Columns.Count, Height / RowHeight + 1);
-			_displayBuffer.Grow(Math.Max(ColumnsWidth, Width + HorizontalOffset), Height);
-
 			var numberOfVisibleRows = maxRow - minRow + 1;
+			var numberOfVisibleColumns = maxColumn - minColumn + 1;
+
 			var currentColor = null as Color?;
 			var currentAlignemnt = null as HorizontalAlignment?;
 			var invalidatedRect = Rectangle.Empty;
 
 			for (int rowIndex = minRow; rowIndex <= maxRow; rowIndex++)
 			{
-				var hasRow = ValidateRow(rowIndex);
-				var row = hasRow ? GetRow(rowIndex) : default;
-
 				for (int columnIndex = minColumn; columnIndex <= maxColumn; columnIndex++)
 				{
-					var column = Columns[columnIndex];
-					var cell = hasRow
-						? StyleCell(rowIndex, columnIndex, column.GetCell(row))
-						: Cell.Empty;
+					var cell = GetCell(rowIndex, columnIndex);
 
 					var croppedRowIndex = (rowIndex % numberOfVisibleRows + numberOfVisibleRows) % numberOfVisibleRows;
-					var croppedColumnIndex = _columnPlacement[columnIndex].CroppedIndex;
+					var croppedColumnIndex = _columns[columnIndex].CroppedIndex;
 					var changed = _cellBuffer.TrySet(rowIndex, columnIndex, in cell);
 
 					if (!changed) continue;
 
 					var size = new Size(
-						_columnPlacement[columnIndex].Width - 1,
+						_columns[columnIndex].Width - 1,
 						RowHeight - 1);
 					var realPosition = new Point(
-						_columnPlacement[columnIndex].RealOffset - HorizontalOffset,
+						_columns[columnIndex].RealOffset - HorizontalOffset,
 						RowHeight * rowIndex - VerticalOffset);
 					var croppedPosition = new Point(
-						_columnPlacement[columnIndex].CroppedOffset,
+						_columns[columnIndex].CroppedOffset,
 						RowHeight * croppedRowIndex);
 					var realRectangle = new Rectangle(realPosition, size);
 					var croppedRectangle = new Rectangle(croppedPosition, size);
@@ -272,6 +274,8 @@ namespace DynamicGrid
 		{
 			base.OnSizeChanged(e);
 
+			UpdateVisibleRows();
+			UpdateVisibleColumns();
 			InvalidateData();
 		}
 

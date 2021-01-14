@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Forms;
 
 namespace DynamicGrid.ExampleApp
@@ -30,8 +31,7 @@ namespace DynamicGrid.ExampleApp
 
 		private void OnVerticalScrollBarValueChanged(object sender, EventArgs e)
 		{
-			//_dataSupplier.Offset = _verticalScrollBar.Value;
-			_grid.InvalidateData();
+			_grid.VerticalOffset = _verticalScrollBar.Value;
 		}
 
 		private void OnTotalColumnWidthChanged(object sender, EventArgs e)

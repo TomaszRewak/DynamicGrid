@@ -10,16 +10,21 @@ using System.Windows.Threading;
 
 namespace DynamicGrid.ExampleApp
 {
-	internal sealed class MyGrid : Grid<MyRow>
+	internal sealed class MyGrid : Grid
 	{
-		private readonly List<MyRow> _rows = Enumerable.Range(0, 100).Select(i => new MyRow(i)).ToList();
-		private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
+		private readonly List<MyRow> _rows;
+		private readonly List<MyColumn> _columns;
+		private readonly Stopwatch _stopwatch;
 		private int _stopwatchCounter;
 
 		public double Fps { get; private set; }
 
 		public MyGrid()
 		{
+			_rows = Enumerable.Range(0, 100).Select(i => new MyRow(i)).ToList();
+			_columns = Enumerable.Range(0, 100).Select(i => new MyColumn(this, i)).ToList();
+			_stopwatch = Stopwatch.StartNew();
+
 			_ = new DispatcherTimer(
 				TimeSpan.FromMilliseconds(1),
 				DispatcherPriority.Background,
@@ -27,14 +32,12 @@ namespace DynamicGrid.ExampleApp
 				Dispatcher.CurrentDispatcher);
 		}
 
-		public override MyRow GetRow(int rowIndex)
+		public override Cell GetCell(int rowIndex, int columnIndex)
 		{
-			return _rows[rowIndex];
-		}
+			if (rowIndex < 0 || rowIndex >= _rows.Count)
+				return Cell.Empty;
 
-		public override bool ValidateRow(int rowIndex)
-		{
-			return rowIndex >= 0 && rowIndex < _rows.Count;
+			return _columns[columnIndex].GetCell(_rows[rowIndex]);
 		}
 
 		private void Step()
