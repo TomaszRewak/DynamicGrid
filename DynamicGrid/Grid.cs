@@ -23,29 +23,19 @@ namespace DynamicGrid
 		private readonly Ref<bool> _dataInvalidationGuard = new();
 		private Rectangle _invalidDataRegion = Rectangle.Empty;
 
-		private readonly List<ColumnPlacement> _columns = new();
+		private readonly List<int> _columnWidths = new();
+		private readonly List<ColumnPlacement> _columnPlacement = new();
 		public IEnumerable<int> Columns
 		{
-			get => _columns.Select(c => c.Width);
+			get => _columnWidths;
 			set
 			{
-				var lastVisibleColumn = 0;
-				var visibleColumnsWidth = 0;
-				var croppedIndex = 0;
-				var croppedOffset = 0;
-				var realOffset = 0;
+				_columnWidths.Clear();
 
 				foreach (var width in value)
-				{
-					_columns.Add(new ColumnPlacement(width, croppedIndex, croppedOffset, realOffset));
-				}
+					_columnWidths.Add(width);
 
-				var visibleColumnsWidth
-
-				while (maxColumn < _columns.Count)
-				{
-
-				}
+				ColumnPlacement.CalculatePlacement(_columnWidths, Width, _columnPlacement);
 			}
 		}
 
