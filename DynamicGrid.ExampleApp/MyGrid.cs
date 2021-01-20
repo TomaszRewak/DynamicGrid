@@ -34,10 +34,14 @@ namespace DynamicGrid.ExampleApp
 
 		public override Cell GetCell(int rowIndex, int columnIndex)
 		{
-			if (rowIndex < 0 || rowIndex >= _rows.Count)
-				return Cell.Empty;
+			var now = DateTime.Now;
 
-			return _columns[columnIndex].GetCell(_rows[rowIndex]);
+			var color = Color.FromArgb(
+				(int)((1 + Math.Sin((double)now.Ticks / 10000000 + columnIndex * 0.05 + rowIndex * 0.05)) / 2 * 255),
+				(int)((1 + Math.Sin((double)now.Ticks / 20000000 + columnIndex * 0.1 + rowIndex * 0.2)) / 2 * 255),
+				(int)((1 + Math.Sin((double)now.Ticks / 30000000 + columnIndex * 0.5 + rowIndex * 0.05)) / 2 * 255));
+
+			return new Cell($"{Fps:####}fps X {now.Millisecond:D3} {rowIndex} {columnIndex}", HorizontalAlignment.Center, color);
 		}
 
 		private void Step()

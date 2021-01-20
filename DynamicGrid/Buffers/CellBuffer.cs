@@ -11,21 +11,28 @@ namespace DynamicGrid.Buffers
 		private int Height => _cells.GetLength(0);
 		private int Width => _cells.GetLength(1);
 
+		private Size _size;
+		public Size Size
+		{
+			get => _size;
+			set
+			{
+				_size = value;
+
+				if (value.Width <= Width && value.Height <= Height)
+					return;
+
+				_cells = new Cell[
+					Math.Max(value.Height * 2, Height),
+					Math.Max(value.Width * 2, Width)];
+			}
+		}
+
 		public void Clear(Color color)
 		{
 			for (var y = 0; y < Height; y++)
 				for (var x = 0; x < Width; x++)
 					_cells[y, x] = new Cell(color);
-		}
-
-		public void Grow(int width, int height)
-		{
-			if (width <= Width && height <= Height)
-				return;
-
-			_cells = new Cell[
-				Math.Max(height * 2, Height),
-				Math.Max(width * 2, Width)];
 		}
 
 		public bool TrySet(int row, int column, in Cell value)

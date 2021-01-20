@@ -16,6 +16,8 @@ namespace DynamicGrid.Interop
 
 		public static void Copy(IntPtr source, Point sourcePosition, IntPtr target, Point targetPosition, Size size)
 		{
+			if (size.Width == 0 || size.Height == 0) return;
+
 			BitBlt(target, targetPosition.X, targetPosition.Y, size.Width, size.Height, source, sourcePosition.X, sourcePosition.Y, TernaryRasterOperations.SRCCOPY);
 		}
 

@@ -33,7 +33,7 @@ namespace DynamicGrid
 
 				UpdateVisibleColumns();
 				ResizeBuffers();
-				Invalidate();
+				InvalidateData();
 			}
 		}
 
@@ -60,15 +60,7 @@ namespace DynamicGrid
 				if (_verticalOffset == value) return;
 				_verticalOffset = value;
 
-				var oldVisibleRows = VisibleRows;
 				UpdateVisibleRows();
-				var newVisibleRows = VisibleRows;
-
-				for (int r = newVisibleRows.MinRow; r <= newVisibleRows.MaxRow && r < oldVisibleRows.MinRow; r++)
-					InvalidateColumn(r);
-				for (int r = newVisibleRows.MaxRow; r >= newVisibleRows.MinRow && r > oldVisibleRows.MaxRow; r--)
-					InvalidateColumn(r);
-
 				Invalidate();
 			}
 		}
@@ -131,10 +123,10 @@ namespace DynamicGrid
 
 			var rows = Height / RowHeight + 2;
 
-			_cellBuffer.Grow(
+			_cellBuffer.Size = new Size(
 				_columns.Max(p => p.CroppedIndex + 1),
 				rows);
-			_displayBuffer.Grow(
+			_displayBuffer.Size = new Size(
 				_columns.Max(p => p.CroppedOffset + p.Width),
 				rows * RowHeight);
 
@@ -202,9 +194,6 @@ namespace DynamicGrid
 			minRow = Math.Max(minRow, _invalidDataRegion.Top);
 			maxRow = Math.Min(maxRow, _invalidDataRegion.Bottom);
 
-			var numberOfVisibleRows = maxRow - minRow + 1;
-			var numberOfVisibleColumns = maxColumn - minColumn + 1;
-
 			var currentColor = null as Color?;
 			var currentAlignemnt = null as HorizontalAlignment?;
 			var invalidatedRect = Rectangle.Empty;
@@ -215,7 +204,7 @@ namespace DynamicGrid
 				{
 					var cell = GetCell(rowIndex, columnIndex);
 
-					var croppedRowIndex = (rowIndex % numberOfVisibleRows + numberOfVisibleRows) % numberOfVisibleRows;
+					var croppedRowIndex = (rowIndex % _cellBuffer.Size.Height + _cellBuffer.Size.Height) % _cellBuffer.Size.Height;
 					var croppedColumnIndex = _columns[columnIndex].CroppedIndex;
 					var changed = _cellBuffer.TrySet(croppedRowIndex, croppedColumnIndex, in cell);
 
@@ -277,7 +266,7 @@ namespace DynamicGrid
 
 		protected override void OnPaint(PaintEventArgs e)
 		{
-			//Gdi32.Copy(_bufferHdc, new Point(rectangle.X + offsetX, rectangle.Y), _parentHdc, rectangle.Location, rectangle.Size);
+			Gdi32.Copy(_displayBuffer.Hdc, e.ClipRectangle.Location, _graphicsHdc, e.ClipRectangle.Location, e.ClipRectangle.Size);
 		}
 
 		protected override void OnPaintBackground(PaintEventArgs e)

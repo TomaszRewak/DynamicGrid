@@ -32,7 +32,7 @@ namespace DynamicGrid
 				Rebuild();
 				UpdateColumnsWidth();
 
-				ColumnsChanged?.Invoke(this, EventArgs.Empty);
+				ColumnsArrangementChanged?.Invoke(this, EventArgs.Empty);
 			}
 		}
 
@@ -221,6 +221,8 @@ namespace DynamicGrid
 		private void OnColumnWidthChanged(object sender, EventArgs e)
 		{
 			UpdateColumnsWidth();
+
+			ColumnsResized?.Invoke(this, EventArgs.Empty);
 		}
 
 		private void MoveColumn(int from, int to)
@@ -243,7 +245,8 @@ namespace DynamicGrid
 			Columns = columns;
 		}
 
-		public event EventHandler ColumnsChanged;
+		public event EventHandler ColumnsArrangementChanged;
+		public event EventHandler ColumnsResized;
 		public event EventHandler TotalColumnWidthChanged;
 	}
 }

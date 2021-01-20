@@ -21,6 +21,30 @@ namespace DynamicGrid.Buffers
 
 		public IntPtr Hdc => _bufferHdc;
 
+		private Size _size;
+		public Size Size
+		{
+			get => _size;
+			set
+			{
+				_size = value;
+
+				if (value.Width <= _bufferSize.Width && value.Height <= _bufferSize.Height)
+					return;
+
+				Dispose();
+
+				_bufferSize = new Size(
+					Math.Max(value.Width * 2, _bufferSize.Width),
+					Math.Max(value.Height * 2, _bufferSize.Height));
+				_buffer = BufferedGraphicsManager.Current.Allocate(_parentHdc, new Rectangle(new Point(), _bufferSize));
+				_bufferHdc = _buffer.Graphics.GetHdc();
+
+				Gdi32.SetBackgroundColor(_bufferHdc, _backgroundColor);
+				Gdi32.Fill(_bufferHdc, new Rectangle(Point.Empty, _bufferSize));
+			}
+		}
+
 		public DisplayBuffer(IntPtr parentHdc)
 		{
 			_parentHdc = parentHdc;
@@ -42,23 +66,6 @@ namespace DynamicGrid.Buffers
 			_backgroundColor = color;
 
 			Gdi32.SetBackgroundColor(_bufferHdc, color);
-			Gdi32.Fill(_bufferHdc, new Rectangle(Point.Empty, _bufferSize));
-		}
-
-		public void Grow(int width, int height)
-		{
-			if (width <= _bufferSize.Width && height <= _bufferSize.Height)
-				return;
-
-			Dispose();
-
-			_bufferSize = new Size(
-				Math.Max(width * 2, _bufferSize.Width),
-				Math.Max(height * 2, _bufferSize.Height));
-			_buffer = BufferedGraphicsManager.Current.Allocate(_parentHdc, new Rectangle(new Point(), _bufferSize));
-			_bufferHdc = _buffer.Graphics.GetHdc();
-
-			Gdi32.SetBackgroundColor(_bufferHdc, _backgroundColor);
 			Gdi32.Fill(_bufferHdc, new Rectangle(Point.Empty, _bufferSize));
 		}
 	}
