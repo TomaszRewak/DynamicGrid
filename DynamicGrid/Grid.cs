@@ -259,9 +259,7 @@ namespace DynamicGrid
 			base.OnSizeChanged(e);
 
 			UpdateVisibleRows();
-			UpdateVisibleColumns();
-			ResizeBuffers();
-			InvalidateData();
+			Columns = Columns;
 		}
 
 		protected override void OnPaint(PaintEventArgs e)
