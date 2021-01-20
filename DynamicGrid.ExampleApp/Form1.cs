@@ -20,7 +20,6 @@ namespace DynamicGrid.ExampleApp
 			var columns = Enumerable.Range(0, 20).Select(c => new MyColumn(_grid, c)).ToArray();
 
 			_gridHeader.Columns = columns;
-			_grid.Columns = columns;
 		}
 
 		private void OnHorizontalScrollBarValueChanged(object sender, EventArgs e)
@@ -41,7 +40,7 @@ namespace DynamicGrid.ExampleApp
 
 		private void OnColumnsChanged(object sender, EventArgs e)
 		{
-			_grid.Columns = _gridHeader.Columns;
+			_grid.Columns = _gridHeader.Columns.Select(c => c.Width);
 		}
 
 		protected override void OnSizeChanged(EventArgs e)

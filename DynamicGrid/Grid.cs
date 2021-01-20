@@ -23,19 +23,17 @@ namespace DynamicGrid
 		private readonly Ref<bool> _dataInvalidationGuard = new();
 		private Rectangle _invalidDataRegion = Rectangle.Empty;
 
-		private readonly List<int> _columnWidths = new();
-		private readonly List<ColumnPlacement> _columnPlacement = new();
+		private readonly List<ColumnPlacement> _columns = new();
 		public IEnumerable<int> Columns
 		{
-			get => _columnWidths;
+			get => _columns.Select(c => c.Width);
 			set
 			{
-				_columnWidths.Clear();
+				ColumnPlacement.CalculatePlacement(value, Width, _columns);
 
-				foreach (var width in value)
-					_columnWidths.Add(width);
-
-				ColumnPlacement.CalculatePlacement(_columnWidths, Width, _columnPlacement);
+				UpdateVisibleColumns();
+				ResizeBuffers();
+				Invalidate();
 			}
 		}
 
@@ -49,7 +47,6 @@ namespace DynamicGrid
 				_horizontalOffset = value;
 
 				UpdateVisibleColumns();
-
 				Invalidate();
 			}
 		}
@@ -106,9 +103,9 @@ namespace DynamicGrid
 			var maxRow = (VerticalOffset + Height - 1) / RowHeight + Math.Sign((VerticalOffset + Height - 1) % RowHeight);
 
 			for (int r = minRow; r <= maxRow && r < VisibleRows.MinRow; r++)
-				InvalidateColumn(r);
+				InvalidateRow(r);
 			for (int r = maxRow; r >= minRow && r > VisibleRows.MaxRow; r--)
-				InvalidateColumn(r);
+				InvalidateRow(r);
 
 			VisibleRows = (minRow, maxRow);
 		}
@@ -128,10 +125,18 @@ namespace DynamicGrid
 
 		public virtual Cell GetCell(int rowIndex, int columnIndex) => Cell.Empty;
 
-		private void GrowBuffers()
+		private void ResizeBuffers()
 		{
-			_cellBuffer.Grow(Columns.Count, Height / RowHeight + 1);
-			_displayBuffer.Grow(Math.Max(ColumnsWidth, Width + HorizontalOffset), Height);
+			if (!_columns.Any()) return;
+
+			var rows = Height / RowHeight + 2;
+
+			_cellBuffer.Grow(
+				_columns.Max(p => p.CroppedIndex + 1),
+				rows);
+			_displayBuffer.Grow(
+				_columns.Max(p => p.CroppedOffset + p.Width),
+				rows * RowHeight);
 
 			InvalidateBuffers();
 		}
@@ -212,7 +217,7 @@ namespace DynamicGrid
 
 					var croppedRowIndex = (rowIndex % numberOfVisibleRows + numberOfVisibleRows) % numberOfVisibleRows;
 					var croppedColumnIndex = _columns[columnIndex].CroppedIndex;
-					var changed = _cellBuffer.TrySet(rowIndex, columnIndex, in cell);
+					var changed = _cellBuffer.TrySet(croppedRowIndex, croppedColumnIndex, in cell);
 
 					if (!changed) continue;
 
@@ -266,6 +271,7 @@ namespace DynamicGrid
 
 			UpdateVisibleRows();
 			UpdateVisibleColumns();
+			ResizeBuffers();
 			InvalidateData();
 		}
 
@@ -290,12 +296,9 @@ namespace DynamicGrid
 
 			_fontManager.Load(Font);
 
-			InvalidateBuffers();
-		}
-
-		private void OnColumnWidthChanged(object sender, EventArgs e)
-		{
-			InvalidateBuffers();
+			UpdateVisibleRows();
+			ResizeBuffers();
+			InvalidateData();
 		}
 
 		protected override void OnClick(EventArgs e)
