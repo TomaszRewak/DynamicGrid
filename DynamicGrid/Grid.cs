@@ -70,15 +70,13 @@ namespace DynamicGrid
 		private (int MinColumn, int MaxColumn) VisibleColumns { get; set; }
 		private void UpdateVisibleColumns()
 		{
-			var offset = 0;
-
 			var minColumn = 0;
-			while (minColumn < _columns.Count - 1 && offset + _columns[minColumn].Width < HorizontalOffset)
-				offset += _columns[minColumn++].Width;
+			while (minColumn < _columns.Count - 1 && _columns[minColumn].RealOffset + _columns[minColumn].Width <= HorizontalOffset)
+				minColumn++;
 
 			var maxColumn = minColumn;
-			while (maxColumn < _columns.Count - 1 && offset + _columns[maxColumn].Width < HorizontalOffset + Width)
-				offset += _columns[maxColumn++].Width;
+			while (maxColumn < _columns.Count - 1 && _columns[maxColumn].RealOffset + _columns[maxColumn].Width < HorizontalOffset + Width)
+				maxColumn++;
 
 			for (int c = minColumn; c <= maxColumn && c < VisibleColumns.MinColumn; c++)
 				InvalidateColumn(c);
@@ -268,22 +266,33 @@ namespace DynamicGrid
 
 		protected override void OnPaint(PaintEventArgs e)
 		{
-			var (minRow, maxRow) = VisibleRows;
-			var (minColumn, maxColumn) = VisibleColumns;
+			var destinationRect = e.ClipRectangle;
 
-			var topLeftSource = new Point(
-				_columns[minColumn].CroppedOffset + e.ClipRectangle.X + HorizontalOffset - _columns[minColumn].RealOffset,
-				_cellBuffer.CropRow(minRow) * RowHeight + e.ClipRectangle.Y + VerticalOffset - minRow * RowHeight);
-			var topLeftDestination = e.ClipRectangle.Location;
-			var topLeftSize = new Size(
-				_displayBuffer.Size.Width - topLeftSource.X,
-				_displayBuffer.Size.Height - topLeftSource.Y);
+			var minRow = VisibleRows.MinRow;
+			var minColumn = VisibleColumns.MinColumn;
 
-			Gdi32.Copy(_displayBuffer.Hdc, topLeftSource, _graphicsHdc, topLeftDestination, topLeftSize);
+			var sourceRect = new Rectangle(
+				_columns[minColumn].CroppedOffset + destinationRect.X + HorizontalOffset - _columns[minColumn].RealOffset,
+				_cellBuffer.CropRow(minRow) * RowHeight + destinationRect.Y + VerticalOffset - minRow * RowHeight,
+				destinationRect.Width,
+				destinationRect.Height);
+
+			if (sourceRect.Left < _displayBuffer.Size.Width && sourceRect.Top < _displayBuffer.Size.Height)
+			{
+				var source = sourceRect.Location;
+				var destination = destinationRect.Location;
+				var size = new Size(
+					Math.Min(destinationRect.Width, _displayBuffer.Size.Width - sourceRect.X),
+					Math.Min(destinationRect.Height, _displayBuffer.Size.Height - sourceRect.Y));
+
+				Gdi32.Copy(_displayBuffer.Hdc, source, _graphicsHdc, destination, size);
+			}
 		}
 
 		protected override void OnPaintBackground(PaintEventArgs e)
-		{ }
+		{
+			base.OnPaintBackground(e); // TODO remove the base call
+		}
 
 		protected override void OnBackColorChanged(EventArgs e)
 		{
