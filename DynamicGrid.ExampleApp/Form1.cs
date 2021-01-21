@@ -28,11 +28,6 @@ namespace DynamicGrid.ExampleApp
 			_gridHeader.HorizontalOffset = _horizontalScrollBar.Value;
 		}
 
-		private void OnVerticalScrollBarValueChanged(object sender, EventArgs e)
-		{
-			_grid.VerticalOffset = _verticalScrollBar.Value * 2;
-		}
-
 		private void OnTotalColumnWidthChanged(object sender, EventArgs e)
 		{
 			_horizontalScrollBar.Maximum = Math.Max(0, _gridHeader.TotalColumnWdith);
@@ -47,14 +42,14 @@ namespace DynamicGrid.ExampleApp
 		{
 			base.OnSizeChanged(e);
 
-			_horizontalScrollBar.LargeChange = ClientSize.Width - _verticalScrollBar.Width;
+			_horizontalScrollBar.LargeChange = ClientSize.Width;
 		}
 
 		protected override void OnMouseWheel(MouseEventArgs e)
 		{
 			base.OnMouseWheel(e);
 
-			_verticalScrollBar.Value = Math.Max(_verticalScrollBar.Minimum, Math.Min(_verticalScrollBar.Maximum, _verticalScrollBar.Value - Math.Sign(e.Delta)));
+			_grid.VerticalOffset -= Math.Sign(e.Delta) * 4;
 		}
 	}
 }
