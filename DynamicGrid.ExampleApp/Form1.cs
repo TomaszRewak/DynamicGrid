@@ -30,7 +30,7 @@ namespace DynamicGrid.ExampleApp
 
 		private void OnVerticalScrollBarValueChanged(object sender, EventArgs e)
 		{
-			_grid.VerticalOffset = _verticalScrollBar.Value * 10;
+			_grid.VerticalOffset = _verticalScrollBar.Value * 2;
 		}
 
 		private void OnTotalColumnWidthChanged(object sender, EventArgs e)

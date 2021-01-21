@@ -49,5 +49,10 @@ namespace DynamicGrid.Buffers
 
 			return changed;
 		}
+
+		public int CropRow(int index)
+		{
+			return (index % Size.Height + Size.Height) % Size.Height;
+		}
 	}
 }

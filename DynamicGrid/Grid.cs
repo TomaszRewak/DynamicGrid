@@ -91,8 +91,12 @@ namespace DynamicGrid
 		private (int MinRow, int MaxRow) VisibleRows { get; set; }
 		private void UpdateVisibleRows()
 		{
-			var minRow = VerticalOffset / RowHeight - (VerticalOffset % RowHeight < 0 ? 1 : 0);
-			var maxRow = (VerticalOffset + Height - 1) / RowHeight + Math.Sign((VerticalOffset + Height - 1) % RowHeight);
+			var minRow = VerticalOffset >= 0
+				? VerticalOffset / RowHeight
+				: (VerticalOffset + 1) / RowHeight - 1;
+			var maxRow = VerticalOffset + Height > 0
+				? (VerticalOffset + Height - 1) / RowHeight
+				: (VerticalOffset + Height) / RowHeight - 1;
 
 			for (int r = minRow; r <= maxRow && r < VisibleRows.MinRow; r++)
 				InvalidateRow(r);
@@ -204,7 +208,7 @@ namespace DynamicGrid
 				{
 					var cell = GetCell(rowIndex, columnIndex);
 
-					var croppedRowIndex = (rowIndex % _cellBuffer.Size.Height + _cellBuffer.Size.Height) % _cellBuffer.Size.Height;
+					var croppedRowIndex = _cellBuffer.CropRow(rowIndex);
 					var croppedColumnIndex = _columns[columnIndex].CroppedIndex;
 					var changed = _cellBuffer.TrySet(croppedRowIndex, croppedColumnIndex, in cell);
 
@@ -264,7 +268,18 @@ namespace DynamicGrid
 
 		protected override void OnPaint(PaintEventArgs e)
 		{
-			Gdi32.Copy(_displayBuffer.Hdc, e.ClipRectangle.Location, _graphicsHdc, e.ClipRectangle.Location, e.ClipRectangle.Size);
+			var (minRow, maxRow) = VisibleRows;
+			var (minColumn, maxColumn) = VisibleColumns;
+
+			var topLeftSource = new Point(
+				_columns[minColumn].CroppedOffset + e.ClipRectangle.X + HorizontalOffset - _columns[minColumn].RealOffset,
+				_cellBuffer.CropRow(minRow) * RowHeight + e.ClipRectangle.Y + VerticalOffset - minRow * RowHeight);
+			var topLeftDestination = e.ClipRectangle.Location;
+			var topLeftSize = new Size(
+				_displayBuffer.Size.Width - topLeftSource.X,
+				_displayBuffer.Size.Height - topLeftSource.Y);
+
+			Gdi32.Copy(_displayBuffer.Hdc, topLeftSource, _graphicsHdc, topLeftDestination, topLeftSize);
 		}
 
 		protected override void OnPaintBackground(PaintEventArgs e)
