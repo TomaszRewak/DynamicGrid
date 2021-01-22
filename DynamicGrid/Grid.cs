@@ -172,6 +172,8 @@ namespace DynamicGrid
 
 		public void InvalidateData(int minRow, int maxRow, int minColumn, int maxColumn)
 		{
+			// TODO: only invalidate visible cells
+
 			var region = new Rectangle(
 				minColumn,
 				minRow,
@@ -188,6 +190,8 @@ namespace DynamicGrid
 		private void RefreshData() =>
 		this.DispatchOnce(_dataInvalidationGuard, () =>
 		{
+			if (_cellBuffer.Size.IsEmpty) return;
+
 			var (minRow, maxRow) = VisibleRows;
 			var (minColumn, maxColumn) = VisibleColumns;
 
@@ -266,6 +270,12 @@ namespace DynamicGrid
 
 		protected override void OnPaint(PaintEventArgs e)
 		{
+			if (_columns.Count == 0)
+			{
+				base.OnPaint(e);
+				return;
+			}
+
 			var destinationRect = e.ClipRectangle;
 
 			var minRow = VisibleRows.MinRow;
@@ -336,7 +346,7 @@ namespace DynamicGrid
 
 		protected override void OnPaintBackground(PaintEventArgs e)
 		{
-			base.OnPaintBackground(e); // TODO remove the base call
+			//base.OnPaintBackground(e); // TODO remove the base call
 		}
 
 		protected override void OnBackColorChanged(EventArgs e)

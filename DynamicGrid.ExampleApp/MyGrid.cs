@@ -12,8 +12,6 @@ namespace DynamicGrid.ExampleApp
 {
 	internal sealed class MyGrid : Grid
 	{
-		private readonly List<MyRow> _rows;
-		private readonly List<MyColumn> _columns;
 		private readonly Stopwatch _stopwatch;
 		private int _stopwatchCounter;
 
@@ -21,8 +19,6 @@ namespace DynamicGrid.ExampleApp
 
 		public MyGrid()
 		{
-			_rows = Enumerable.Range(0, 100).Select(i => new MyRow(i)).ToList();
-			_columns = Enumerable.Range(0, 100).Select(i => new MyColumn(this, i)).ToList();
 			_stopwatch = Stopwatch.StartNew();
 
 			_ = new DispatcherTimer(
@@ -54,12 +50,12 @@ namespace DynamicGrid.ExampleApp
 				_stopwatchCounter = 0;
 			}
 
-			InvalidateData();
+			//InvalidateData();
 			//InvalidateColumn(2);
 			//InvalidateColumn(4);
 			//InvalidateRow(5);
 			//InvalidateRow(7);
-			//InvalidateCell(10, 5);
+			InvalidateCell(10, 5);
 			//InvalidateColumn(Columns.ElementAt(3));
 		}
 	}

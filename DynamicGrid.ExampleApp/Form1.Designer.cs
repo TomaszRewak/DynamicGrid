@@ -9,7 +9,7 @@ namespace DynamicGrid.ExampleApp
 	{
 		private void InitializeComponent()
 		{
-			_gridHeader = new GridHeader<MyRow>();
+			_gridHeader = new DataGridView();
 			_grid = new MyGrid();
 			_horizontalScrollBar = new HScrollBar();
 
@@ -20,9 +20,13 @@ namespace DynamicGrid.ExampleApp
 			_gridHeader.Name = "gridHeader";
 			_gridHeader.Size = new Size(800, 40);
 			_gridHeader.TabIndex = 0;
-			_gridHeader.TotalColumnWidthChanged += OnTotalColumnWidthChanged;
-			_gridHeader.ColumnsArrangementChanged += OnColumnsChanged;
-			_gridHeader.ColumnsResized += OnColumnsChanged;
+			_gridHeader.RowHeadersVisible = false;
+			_gridHeader.ColumnHeadersHeight = 40;
+			_gridHeader.BorderStyle = BorderStyle.None;
+			_gridHeader.ColumnWidthChanged += OnColumnsChanged;
+			_gridHeader.ColumnDisplayIndexChanged += OnColumnsChanged;
+			_gridHeader.ColumnAdded += OnColumnsChanged;
+			_gridHeader.ColumnRemoved += OnColumnsChanged;
 
 			_grid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 			_grid.Location = new Point(0, 40);
@@ -49,7 +53,7 @@ namespace DynamicGrid.ExampleApp
 			ResumeLayout(false);
 		}
 
-		private GridHeader<MyRow> _gridHeader;
+		private DataGridView _gridHeader;
 		private MyGrid _grid;
 		private HScrollBar _horizontalScrollBar;
 	}
