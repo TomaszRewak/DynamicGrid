@@ -282,8 +282,53 @@ namespace DynamicGrid
 				var source = sourceRect.Location;
 				var destination = destinationRect.Location;
 				var size = new Size(
-					Math.Min(destinationRect.Width, _displayBuffer.Size.Width - sourceRect.X),
-					Math.Min(destinationRect.Height, _displayBuffer.Size.Height - sourceRect.Y));
+					Math.Min(destinationRect.Width, _displayBuffer.Size.Width - sourceRect.Left),
+					Math.Min(destinationRect.Height, _displayBuffer.Size.Height - sourceRect.Top));
+
+				Gdi32.Copy(_displayBuffer.Hdc, source, _graphicsHdc, destination, size);
+			}
+
+			if (sourceRect.Right > _displayBuffer.Size.Width && sourceRect.Top < _displayBuffer.Size.Height)
+			{
+				var source = new Point(
+					Math.Max(0, sourceRect.Left - _displayBuffer.Size.Width),
+					sourceRect.Top);
+				var destination = new Point(
+					destinationRect.Left + Math.Max(0, _displayBuffer.Size.Width - sourceRect.Left),
+					destinationRect.Top);
+				var size = new Size(
+					destinationRect.Width - Math.Max(0, _displayBuffer.Size.Width - sourceRect.Left),
+					Math.Min(destinationRect.Height, _displayBuffer.Size.Height - sourceRect.Top));
+
+				Gdi32.Copy(_displayBuffer.Hdc, source, _graphicsHdc, destination, size);
+			}
+
+			if (sourceRect.Left < _displayBuffer.Size.Width && sourceRect.Bottom > _displayBuffer.Size.Height)
+			{
+				var source = new Point(
+					sourceRect.Left,
+					Math.Max(0, sourceRect.Top - _displayBuffer.Size.Height));
+				var destination = new Point(
+					destinationRect.Left,
+					destinationRect.Top + Math.Max(0, _displayBuffer.Size.Height - sourceRect.Top));
+				var size = new Size(
+					Math.Min(destinationRect.Width, _displayBuffer.Size.Width - sourceRect.Left),
+					destinationRect.Height - Math.Max(0, _displayBuffer.Size.Height - sourceRect.Top));
+
+				Gdi32.Copy(_displayBuffer.Hdc, source, _graphicsHdc, destination, size);
+			}
+
+			if (sourceRect.Right > _displayBuffer.Size.Width && sourceRect.Bottom > _displayBuffer.Size.Height)
+			{
+				var source = new Point(
+					Math.Max(0, sourceRect.Left - _displayBuffer.Size.Width),
+					Math.Max(0, sourceRect.Top - _displayBuffer.Size.Height));
+				var destination = new Point(
+					destinationRect.Left + Math.Max(0, _displayBuffer.Size.Width - sourceRect.Left),
+					destinationRect.Top + Math.Max(0, _displayBuffer.Size.Height - sourceRect.Top));
+				var size = new Size(
+					destinationRect.Width - Math.Max(0, _displayBuffer.Size.Width - sourceRect.Left),
+					destinationRect.Height - Math.Max(0, _displayBuffer.Size.Height - sourceRect.Top));
 
 				Gdi32.Copy(_displayBuffer.Hdc, source, _graphicsHdc, destination, size);
 			}
