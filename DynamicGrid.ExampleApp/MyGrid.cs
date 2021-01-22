@@ -55,7 +55,9 @@ namespace DynamicGrid.ExampleApp
 			//InvalidateColumn(4);
 			//InvalidateRow(5);
 			//InvalidateRow(7);
-			InvalidateCellData(10, 5);
+			InvalidateCellData(-10, 3);
+			InvalidateCellData(10, 3);
+			InvalidateCellData(15, 2);
 			//InvalidateColumn(Columns.ElementAt(3));
 			UpdateData();
 			Update();

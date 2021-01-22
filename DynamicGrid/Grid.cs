@@ -2,6 +2,7 @@
 using DynamicGrid.Data;
 using DynamicGrid.Interop;
 using DynamicGrid.Managers;
+using DynamicGrid.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -67,42 +68,52 @@ namespace DynamicGrid
 		}
 
 		public int RowHeight => _fontManager.FontHeight + 1;
+		private Rectangle VisibleCells => new Rectangle(
+			VisibleColumns.MinColumn,
+			VisibleRows.MinRow,
+			VisibleColumns.MaxColumn - VisibleColumns.MinColumn + 1,
+			VisibleRows.MaxRow - VisibleRows.MinRow + 1);
 
 		private (int MinColumn, int MaxColumn) VisibleColumns { get; set; }
 		private void UpdateVisibleColumns()
 		{
-			var minColumn = 0;
-			while (minColumn < _columns.Count - 1 && _columns[minColumn].RealOffset + _columns[minColumn].Width <= HorizontalOffset)
-				minColumn++;
+			var oldMinColumn = VisibleColumns.MinColumn;
+			var newMinColumn = 0;
+			while (newMinColumn < _columns.Count - 1 && _columns[newMinColumn].RealOffset + _columns[newMinColumn].Width <= HorizontalOffset)
+				newMinColumn++;
 
-			var maxColumn = minColumn;
-			while (maxColumn < _columns.Count - 1 && _columns[maxColumn].RealOffset + _columns[maxColumn].Width < HorizontalOffset + Width)
-				maxColumn++;
+			var oldMaxColumn = VisibleColumns.MaxColumn;
+			var newMaxColumn = newMinColumn;
+			while (newMaxColumn < _columns.Count - 1 && _columns[newMaxColumn].RealOffset + _columns[newMaxColumn].Width < HorizontalOffset + Width)
+				newMaxColumn++;
 
-			for (int c = minColumn; c <= maxColumn && c < VisibleColumns.MinColumn; c++)
+			VisibleColumns = (newMinColumn, newMaxColumn);
+
+			for (int c = newMinColumn; c <= newMaxColumn && c < oldMinColumn; c++)
 				InvalidateColumnData(c);
-			for (int c = maxColumn; c >= minColumn && c > VisibleColumns.MaxColumn; c--)
+			for (int c = newMaxColumn; c >= newMinColumn && c > oldMaxColumn; c--)
 				InvalidateColumnData(c);
-
-			VisibleColumns = (minColumn, maxColumn);
 		}
 
 		private (int MinRow, int MaxRow) VisibleRows { get; set; }
 		private void UpdateVisibleRows()
 		{
-			var minRow = VerticalOffset >= 0
+			var oldMinRow = VisibleRows.MinRow;
+			var newMinRow = VerticalOffset >= 0
 				? VerticalOffset / RowHeight
 				: (VerticalOffset + 1) / RowHeight - 1;
-			var maxRow = VerticalOffset + Height > 0
+
+			var oldMaxRow = VisibleRows.MaxRow;
+			var newMaxRow = VerticalOffset + Height > 0
 				? (VerticalOffset + Height - 1) / RowHeight
 				: (VerticalOffset + Height) / RowHeight - 1;
 
-			for (int r = minRow; r <= maxRow && r < VisibleRows.MinRow; r++)
-				InvalidateRowData(r);
-			for (int r = maxRow; r >= minRow && r > VisibleRows.MaxRow; r--)
-				InvalidateRowData(r);
+			VisibleRows = (newMinRow, newMaxRow);
 
-			VisibleRows = (minRow, maxRow);
+			for (int r = newMinRow; r <= newMaxRow && r < oldMinRow; r++)
+				InvalidateRowData(r);
+			for (int r = newMaxRow; r >= newMinRow && r > oldMaxRow; r--)
+				InvalidateRowData(r);
 		}
 
 		public Grid()
@@ -173,23 +184,21 @@ namespace DynamicGrid
 
 		public void InvalidateData(int minRow, int maxRow, int minColumn, int maxColumn)
 		{
-			// TODO: only invalidate visible cells
-
 			var region = new Rectangle(
 				minColumn,
 				minRow,
 				maxColumn - minColumn + 1,
 				maxRow - minRow + 1);
 
-			_invalidDataRegion = _invalidDataRegion.Width == 0 || _invalidDataRegion.Height == 0
-				? region
-				: Rectangle.Union(_invalidDataRegion, region);
+			_invalidDataRegion = Rectangle.Intersect(VisibleCells, RectangleUtils.Union(_invalidDataRegion, region));
 		}
 
 		public void UpdateData()
 		{
-			if (_invalidDataRegion.Width == 0 || _invalidDataRegion.Height == 0) return;
-			if (_cellBuffer.Size.Width == 0 || _cellBuffer.Size.Height == 0) return;
+			_invalidDataRegion = Rectangle.Intersect(VisibleCells, _invalidDataRegion);
+
+			if (_invalidDataRegion.IsEmpty) return;
+			if (_cellBuffer.Size.IsEmpty) return;
 
 			var (minRow, maxRow) = VisibleRows;
 			var (minColumn, maxColumn) = VisibleColumns;
@@ -246,9 +255,7 @@ namespace DynamicGrid
 
 					Gdi32.PrintText(_displayBuffer.Hdc, croppedRectangle, textPosition, cell.Text);
 
-					invalidatedRect = invalidatedRect == Rectangle.Empty
-						? realRectangle
-						: Rectangle.Union(invalidatedRect, realRectangle);
+					invalidatedRect = RectangleUtils.Union(invalidatedRect, realRectangle);
 				}
 			}
 
