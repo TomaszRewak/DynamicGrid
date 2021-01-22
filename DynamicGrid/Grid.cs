@@ -2,7 +2,6 @@
 using DynamicGrid.Data;
 using DynamicGrid.Interop;
 using DynamicGrid.Managers;
-using DynamicGrid.Threading;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,7 +19,6 @@ namespace DynamicGrid
 		private readonly CellBuffer _cellBuffer;
 		private readonly DisplayBuffer _displayBuffer;
 		private readonly FontManager _fontManager;
-		private readonly Ref<bool> _dataInvalidationGuard = new();
 		private Rectangle _invalidDataRegion = Rectangle.Empty;
 
 		private readonly List<ColumnPlacement> _columns = new();
@@ -33,7 +31,8 @@ namespace DynamicGrid
 
 				UpdateVisibleColumns();
 				ResizeBuffers();
-				InvalidateData();
+				RefreshData();
+				Refresh();
 			}
 		}
 
@@ -47,7 +46,8 @@ namespace DynamicGrid
 				_horizontalOffset = value;
 
 				UpdateVisibleColumns();
-				Invalidate();
+				UpdateData();
+				Refresh();
 			}
 		}
 
@@ -61,7 +61,8 @@ namespace DynamicGrid
 				_verticalOffset = value;
 
 				UpdateVisibleRows();
-				Invalidate();
+				UpdateData();
+				Refresh();
 			}
 		}
 
@@ -79,9 +80,9 @@ namespace DynamicGrid
 				maxColumn++;
 
 			for (int c = minColumn; c <= maxColumn && c < VisibleColumns.MinColumn; c++)
-				InvalidateColumn(c);
+				InvalidateColumnData(c);
 			for (int c = maxColumn; c >= minColumn && c > VisibleColumns.MaxColumn; c--)
-				InvalidateColumn(c);
+				InvalidateColumnData(c);
 
 			VisibleColumns = (minColumn, maxColumn);
 		}
@@ -97,9 +98,9 @@ namespace DynamicGrid
 				: (VerticalOffset + Height) / RowHeight - 1;
 
 			for (int r = minRow; r <= maxRow && r < VisibleRows.MinRow; r++)
-				InvalidateRow(r);
+				InvalidateRowData(r);
 			for (int r = maxRow; r >= minRow && r > VisibleRows.MaxRow; r--)
-				InvalidateRow(r);
+				InvalidateRowData(r);
 
 			VisibleRows = (minRow, maxRow);
 		}
@@ -151,21 +152,21 @@ namespace DynamicGrid
 			InvalidateData(minRow, maxRow, minColumn, maxColumn);
 		}
 
-		public void InvalidateRow(int row)
+		public void InvalidateRowData(int row)
 		{
 			var (minColumn, maxColumn) = VisibleColumns;
 
 			InvalidateData(row, row, minColumn, maxColumn);
 		}
 
-		public void InvalidateColumn(int column)
+		public void InvalidateColumnData(int column)
 		{
 			var (minRow, maxRow) = VisibleRows;
 
 			InvalidateData(minRow, maxRow, column, column);
 		}
 
-		public void InvalidateCell(int row, int column)
+		public void InvalidateCellData(int row, int column)
 		{
 			InvalidateData(row, row, column, column);
 		}
@@ -177,28 +178,26 @@ namespace DynamicGrid
 			var region = new Rectangle(
 				minColumn,
 				minRow,
-				maxColumn - minColumn,
-				maxRow - minRow);
+				maxColumn - minColumn + 1,
+				maxRow - minRow + 1);
 
-			_invalidDataRegion = _invalidDataRegion == Rectangle.Empty
+			_invalidDataRegion = _invalidDataRegion.Width == 0 || _invalidDataRegion.Height == 0
 				? region
 				: Rectangle.Union(_invalidDataRegion, region);
-
-			RefreshData();
 		}
 
-		private void RefreshData() =>
-		this.DispatchOnce(_dataInvalidationGuard, () =>
+		public void UpdateData()
 		{
-			if (_cellBuffer.Size.IsEmpty) return;
+			if (_invalidDataRegion.Width == 0 || _invalidDataRegion.Height == 0) return;
+			if (_cellBuffer.Size.Width == 0 || _cellBuffer.Size.Height == 0) return;
 
 			var (minRow, maxRow) = VisibleRows;
 			var (minColumn, maxColumn) = VisibleColumns;
 
 			minColumn = Math.Max(minColumn, _invalidDataRegion.Left);
-			maxColumn = Math.Min(maxColumn, _invalidDataRegion.Right);
+			maxColumn = Math.Min(maxColumn, _invalidDataRegion.Right - 1);
 			minRow = Math.Max(minRow, _invalidDataRegion.Top);
-			maxRow = Math.Min(maxRow, _invalidDataRegion.Bottom);
+			maxRow = Math.Min(maxRow, _invalidDataRegion.Bottom - 1);
 
 			var currentColor = null as Color?;
 			var currentAlignemnt = null as HorizontalAlignment?;
@@ -258,7 +257,13 @@ namespace DynamicGrid
 			Invalidate(invalidatedRect);
 
 			Trace.WriteLine($"{minColumn}:{maxColumn} {minRow}:{maxRow} {invalidatedRect}");
-		});
+		}
+
+		public void RefreshData()
+		{
+			InvalidateData();
+			UpdateData();
+		}
 
 		protected override void OnSizeChanged(EventArgs e)
 		{
@@ -364,7 +369,8 @@ namespace DynamicGrid
 
 			UpdateVisibleRows();
 			ResizeBuffers();
-			InvalidateData();
+			RefreshData();
+			Refresh();
 		}
 
 		protected override void OnClick(EventArgs e)
