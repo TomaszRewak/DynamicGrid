@@ -78,7 +78,7 @@ namespace DynamicGrid.ExampleApp
 			UpdateData();
 			Update();
 
-			VerticalOffset += 1;
+			//VerticalOffset += 1;
 		}
 	}
 }

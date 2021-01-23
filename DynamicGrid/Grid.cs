@@ -91,14 +91,14 @@ namespace DynamicGrid
 
 			for (int c = newMinColumn; c <= newMaxColumn && c < oldMinColumn; c++)
 			{
-				//_cellBuffer.ClearColumn(_cellBuffer.CropRow(c), BackColor);
-				//_displayBuffer.ClearColumn(_columns[c].CroppedOffset, _columns[c].Width, BackColor);
+				_cellBuffer.ClearColumn(_cellBuffer.CropRow(c), BackColor);
+				_displayBuffer.ClearColumn(_columns[c].CroppedOffset, _columns[c].Width, BackColor);
 				InvalidateColumnData(c);
 			}
 			for (int c = newMaxColumn; c >= newMinColumn && c > oldMaxColumn; c--)
 			{
-				//_cellBuffer.ClearColumn(_cellBuffer.CropRow(c), BackColor);
-				//_displayBuffer.ClearColumn(_columns[c].CroppedOffset, _columns[c].Width, BackColor);
+				_cellBuffer.ClearColumn(_cellBuffer.CropRow(c), BackColor);
+				_displayBuffer.ClearColumn(_columns[c].CroppedOffset, _columns[c].Width, BackColor);
 				InvalidateColumnData(c);
 			}
 		}
