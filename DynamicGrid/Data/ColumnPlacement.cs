@@ -12,15 +12,17 @@ namespace DynamicGrid.Data
 		public readonly int CroppedOffset;
 		public readonly int RealOffset;
 		public readonly int Width;
+		public readonly int CroppedRowWidth;
 
 		public int RealOffsetPlusWidth => RealOffset + Width;
 
-		public ColumnPlacement(int croppedIndex, int croppedOffset, int realOffset, int width)
+		public ColumnPlacement(int croppedIndex, int croppedOffset, int realOffset, int width, int croppedRowWidth)
 		{
 			CroppedIndex = croppedIndex;
 			CroppedOffset = croppedOffset;
 			RealOffset = realOffset;
 			Width = width;
+			CroppedRowWidth = croppedRowWidth;
 		}
 
 		public static void CalculatePlacement(IEnumerable<int> columnWidths, int containerWidth, List<ColumnPlacement> columnPlacement)
@@ -34,17 +36,32 @@ namespace DynamicGrid.Data
 			var croppedIndex = 0;
 			var croppedOffset = 0;
 			var realOffset = 0;
+			var croppedRowWidth = 0;
 			var maxVisibleColumnsWidth = CalculateMaxVisibleColumnsWidth(_columnsWidths, containerWidth);
 
-			foreach (var width in _columnsWidths)
+			for (int realIndex = 0; realIndex < _columnsWidths.Count; realIndex++)
 			{
+				var width = _columnsWidths[realIndex];
+
 				if (croppedOffset + width > maxVisibleColumnsWidth)
 				{
 					croppedIndex = 0;
 					croppedOffset = 0;
+					croppedRowWidth = 0;
 				}
 
-				columnPlacement.Add(new ColumnPlacement(croppedIndex, croppedOffset, realOffset, width));
+				if (croppedIndex == 0)
+				{
+					for (int inRowIndex = realIndex; inRowIndex < _columnsWidths.Count; inRowIndex++)
+					{
+						if (croppedRowWidth + _columnsWidths[inRowIndex] <= maxVisibleColumnsWidth)
+							croppedRowWidth += _columnsWidths[inRowIndex];
+						else
+							break;
+					}
+				}
+
+				columnPlacement.Add(new ColumnPlacement(croppedIndex, croppedOffset, realOffset, width, croppedRowWidth));
 
 				croppedIndex++;
 				croppedOffset += width;

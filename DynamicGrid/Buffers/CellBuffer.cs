@@ -35,6 +35,14 @@ namespace DynamicGrid.Buffers
 					_cells[y, x] = new Cell(color);
 		}
 
+		public void ClearColumn(int index, Color color)
+		{
+			if (index >= Width) return;
+
+			for (var y = 0; y < Height; y++)
+				_cells[y, index] = new Cell(color);
+		}
+
 		public bool TrySet(int row, int column, in Cell value)
 		{
 			Debug.Assert(column >= 0);

@@ -90,9 +90,17 @@ namespace DynamicGrid
 			VisibleColumns = (newMinColumn, newMaxColumn);
 
 			for (int c = newMinColumn; c <= newMaxColumn && c < oldMinColumn; c++)
+			{
+				//_cellBuffer.ClearColumn(_cellBuffer.CropRow(c), BackColor);
+				//_displayBuffer.ClearColumn(_columns[c].CroppedOffset, _columns[c].Width, BackColor);
 				InvalidateColumnData(c);
+			}
 			for (int c = newMaxColumn; c >= newMinColumn && c > oldMaxColumn; c--)
+			{
+				//_cellBuffer.ClearColumn(_cellBuffer.CropRow(c), BackColor);
+				//_displayBuffer.ClearColumn(_columns[c].CroppedOffset, _columns[c].Width, BackColor);
 				InvalidateColumnData(c);
+			}
 		}
 
 		private (int MinRow, int MaxRow) VisibleRows { get; set; }
@@ -124,6 +132,7 @@ namespace DynamicGrid
 			_displayBuffer = new DisplayBuffer(_graphicsHdc);
 			_fontManager = new FontManager();
 
+			Font = new Font("Microsoft Sans Serif", 10);
 			BackColor = Color.LightGray;
 
 			_fontManager.Load(Font);
@@ -338,63 +347,66 @@ namespace DynamicGrid
 			var minColumn = VisibleColumns.MinColumn;
 
 			var sourceRect = new Rectangle(
-				_columns[minColumn].CroppedOffset + destinationRect.X + HorizontalOffset - _columns[minColumn].RealOffset,
-				_cellBuffer.CropRow(minRow) * RowHeight + destinationRect.Y + VerticalOffset - minRow * RowHeight,
+				_columns[minColumn].CroppedOffset + destinationRect.Left + HorizontalOffset - _columns[minColumn].RealOffset,
+				_cellBuffer.CropRow(minRow) * RowHeight + destinationRect.Top + VerticalOffset - minRow * RowHeight,
 				destinationRect.Width,
 				destinationRect.Height);
+			var bufferSize = new Size(
+				_columns[minColumn].CroppedRowWidth,
+				_displayBuffer.Size.Height);
 
-			if (sourceRect.Left < _displayBuffer.Size.Width && sourceRect.Top < _displayBuffer.Size.Height)
+			if (sourceRect.Left < bufferSize.Width && sourceRect.Top < bufferSize.Height)
 			{
 				var source = sourceRect.Location;
 				var destination = destinationRect.Location;
 				var size = new Size(
-					Math.Min(destinationRect.Width, _displayBuffer.Size.Width - sourceRect.Left),
-					Math.Min(destinationRect.Height, _displayBuffer.Size.Height - sourceRect.Top));
+					Math.Min(destinationRect.Width, bufferSize.Width - sourceRect.Left),
+					Math.Min(destinationRect.Height, bufferSize.Height - sourceRect.Top));
 
 				Gdi32.Copy(_displayBuffer.Hdc, source, _graphicsHdc, destination, size);
 			}
 
-			if (sourceRect.Right > _displayBuffer.Size.Width && sourceRect.Top < _displayBuffer.Size.Height)
+			if (sourceRect.Right > bufferSize.Width && sourceRect.Top < bufferSize.Height)
 			{
 				var source = new Point(
-					Math.Max(0, sourceRect.Left - _displayBuffer.Size.Width),
+					Math.Max(0, sourceRect.Left - bufferSize.Width),
 					sourceRect.Top);
 				var destination = new Point(
-					destinationRect.Left + Math.Max(0, _displayBuffer.Size.Width - sourceRect.Left),
+					destinationRect.Left + Math.Max(0, bufferSize.Width - sourceRect.Left),
 					destinationRect.Top);
 				var size = new Size(
-					destinationRect.Width - Math.Max(0, _displayBuffer.Size.Width - sourceRect.Left),
-					Math.Min(destinationRect.Height, _displayBuffer.Size.Height - sourceRect.Top));
+					destinationRect.Width - Math.Max(0, bufferSize.Width - sourceRect.Left),
+					Math.Min(destinationRect.Height, bufferSize.Height - sourceRect.Top));
 
 				Gdi32.Copy(_displayBuffer.Hdc, source, _graphicsHdc, destination, size);
 			}
 
-			if (sourceRect.Left < _displayBuffer.Size.Width && sourceRect.Bottom > _displayBuffer.Size.Height)
+			if (sourceRect.Left < bufferSize.Width && sourceRect.Bottom > bufferSize.Height)
 			{
 				var source = new Point(
 					sourceRect.Left,
-					Math.Max(0, sourceRect.Top - _displayBuffer.Size.Height));
+					Math.Max(0, sourceRect.Top - bufferSize.Height));
 				var destination = new Point(
 					destinationRect.Left,
-					destinationRect.Top + Math.Max(0, _displayBuffer.Size.Height - sourceRect.Top));
+					destinationRect.Top + Math.Max(0, bufferSize.Height - sourceRect.Top));
 				var size = new Size(
-					Math.Min(destinationRect.Width, _displayBuffer.Size.Width - sourceRect.Left),
-					destinationRect.Height - Math.Max(0, _displayBuffer.Size.Height - sourceRect.Top));
+					Math.Min(destinationRect.Width, bufferSize.Width - sourceRect.Left),
+					destinationRect.Height - Math.Max(0, bufferSize.Height - sourceRect.Top));
 
 				Gdi32.Copy(_displayBuffer.Hdc, source, _graphicsHdc, destination, size);
 			}
 
-			if (sourceRect.Right > _displayBuffer.Size.Width && sourceRect.Bottom > _displayBuffer.Size.Height)
+			if (sourceRect.Right > bufferSize.Width && sourceRect.Bottom > bufferSize.Height)
 			{
 				var source = new Point(
-					Math.Max(0, sourceRect.Left - _displayBuffer.Size.Width),
-					Math.Max(0, sourceRect.Top - _displayBuffer.Size.Height));
+					Math.Max(0, sourceRect.Left - bufferSize.Width),
+					Math.Max(0, sourceRect.Top - bufferSize.Height));
 				var destination = new Point(
-					destinationRect.Left + Math.Max(0, _displayBuffer.Size.Width - sourceRect.Left),
-					destinationRect.Top + Math.Max(0, _displayBuffer.Size.Height - sourceRect.Top));
+					destinationRect.Left + Math.Max(0, bufferSize.Width - sourceRect.Left),
+					destinationRect.Top + Math.Max(0, bufferSize.Height - sourceRect.Top));
 				var size = new Size(
-					destinationRect.Width - Math.Max(0, _displayBuffer.Size.Width - sourceRect.Left),
-					destinationRect.Height - Math.Max(0, _displayBuffer.Size.Height - sourceRect.Top));
+					destinationRect.Width - Math.Max(0, bufferSize.Width - sourceRect.Left),
+					destinationRect.Height - Math.Max(0, bufferSize.Height - sourceRect.Top));
 
 				Gdi32.Copy(_displayBuffer.Hdc, source, _graphicsHdc, destination, size);
 			}

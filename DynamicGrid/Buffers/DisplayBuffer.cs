@@ -68,5 +68,13 @@ namespace DynamicGrid.Buffers
 			Gdi32.SetBackgroundColor(_bufferHdc, color);
 			Gdi32.Fill(_bufferHdc, new Rectangle(Point.Empty, _bufferSize));
 		}
+
+		public void ClearColumn(int offset, int width, Color color)
+		{
+			_backgroundColor = color;
+
+			Gdi32.SetBackgroundColor(_bufferHdc, color);
+			Gdi32.Fill(_bufferHdc, new Rectangle(offset, 0, width, _bufferSize.Height));
+		}
 	}
 }
