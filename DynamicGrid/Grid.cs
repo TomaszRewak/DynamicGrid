@@ -198,7 +198,7 @@ namespace DynamicGrid
 			_invalidDataRegion = Rectangle.Intersect(VisibleCells, _invalidDataRegion);
 
 			if (_invalidDataRegion.IsEmpty) return;
-			if (_cellBuffer.Size.IsEmpty) return;
+			if (_columns.Count == 0) return;
 
 			var (minRow, maxRow) = VisibleRows;
 			var (minColumn, maxColumn) = VisibleColumns;
