@@ -44,7 +44,16 @@ namespace DynamicGrid.ExampleApp
 				_ => HorizontalAlignment.Right
 			};
 
-			return new Cell($"{Fps:####}fps X {now.Millisecond:D3} {rowIndex} {columnIndex}", alignemnt, color);
+			var style = (rowIndex % 5) switch
+			{
+				0 => FontStyle.Regular,
+				1 => FontStyle.Bold,
+				2 => FontStyle.Italic,
+				3 => FontStyle.Strikeout,
+				_ => FontStyle.Underline
+			};
+
+			return new Cell($"{Fps:####}fps X {now.Millisecond:D3} {rowIndex} {columnIndex}", color, alignemnt, style);
 		}
 
 		private void Step()

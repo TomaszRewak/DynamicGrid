@@ -12,14 +12,20 @@ namespace DynamicGrid
 	{
 		public string Text { get; }
 		public HorizontalAlignment Alignment { get; }
+		public FontStyle FontStyle { get; }
 		public Color Color { get; }
 
-		public Cell(Color color) : this(string.Empty, HorizontalAlignment.Center, color) { }
-		public Cell(string text, HorizontalAlignment alignment, Color color)
+		public Cell(Color color) : this(string.Empty, color: color) { }
+		public Cell(
+			string text,
+			Color color,
+			HorizontalAlignment alignment = HorizontalAlignment.Center,
+			FontStyle fontStyle = FontStyle.Regular)
 		{
 			Text = text;
-			Alignment = alignment;
 			Color = color;
+			Alignment = alignment;
+			FontStyle = fontStyle;
 		}
 
 		public static Cell Empty => new Cell(Color.Transparent);

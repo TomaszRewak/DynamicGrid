@@ -1,77 +1,96 @@
 ﻿using DynamicGrid.Interop;
 using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DynamicGrid.Managers
 {
 	internal sealed class FontManager : IDisposable
 	{
-		private readonly IntPtr _hdc;
-
-		private Font _regularFont;
-		private Font _boldFont;
-
-		public IntPtr RegularFont { get; private set; }
-		public IntPtr BoldFont { get; private set; }
-
-		public int FontHeight { get; set; }
-		public int FontTopOffset { get; set; }
-		public int FontBottomOffset { get; set; }
-
-		public FontManager(IntPtr hdc)
+		private sealed class FontWrapper : IDisposable
 		{
-			_hdc = hdc;
+			private readonly Font _font;
+			private bool _disposed;
+
+			public IntPtr Hdc { get; private set; }
+
+			public FontWrapper(Font font, FontStyle fontStyle)
+			{
+				_font = new Font(font, fontStyle);
+				Hdc = _font.ToHfont();
+			}
+
+			~FontWrapper()
+			{
+				Dispose(false);
+			}
+
+			public void Dispose()
+			{
+				Dispose(true);
+			}
+
+			private void Dispose(bool disposing)
+			{
+				if (_disposed) return;
+				_disposed = true;
+
+				Gdi32.Delete(Hdc);
+
+				if (disposing)
+					_font.Dispose();
+
+				GC.SuppressFinalize(this);
+			}
 		}
 
-		~FontManager()
-		{
-			Dispose(false);
-		}
+		private FontWrapper _regularFont;
+		private FontWrapper _boldFont;
+		private FontWrapper _italicFont;
+		private FontWrapper _underlineFont;
+		private FontWrapper _strikeoutFont;
+
+		public int FontHeight { get; private set; }
 
 		public void Dispose()
 		{
-			Dispose(true);
-		}
+			_regularFont?.Dispose();
+			_boldFont?.Dispose();
+			_italicFont?.Dispose();
+			_underlineFont?.Dispose();
+			_strikeoutFont?.Dispose();
 
-		private void Dispose(bool disposing)
-		{
-			if (RegularFont != IntPtr.Zero)
-			{
-				Gdi32.Delete(RegularFont);
-				RegularFont = IntPtr.Zero;
-			}
-
-			if (BoldFont != IntPtr.Zero)
-			{
-				Gdi32.Delete(BoldFont);
-				BoldFont = IntPtr.Zero;
-			}
-
-			if (disposing)
-			{
-				_regularFont?.Dispose();
-				_boldFont?.Dispose();
-
-				_regularFont = null;
-				_boldFont = null;
-			}
+			_regularFont = null;
+			_boldFont = null;
+			_italicFont = null;
+			_underlineFont = null;
+			_strikeoutFont = null;
 		}
 
 		public void Load(Font font)
 		{
-			Dispose(true);
+			Dispose();
 
 			FontHeight = (int)Math.Ceiling(font.GetHeight());
 
-			_regularFont = new Font(font.FontFamily, FontHeight, FontStyle.Regular, GraphicsUnit.Pixel);
-			_boldFont = new Font(font.FontFamily, FontHeight, FontStyle.Bold, GraphicsUnit.Pixel);
+			_regularFont = new FontWrapper(font, FontStyle.Regular);
+			_boldFont = new FontWrapper(font, FontStyle.Bold);
+			_italicFont = new FontWrapper(font, FontStyle.Italic);
+			_underlineFont = new FontWrapper(font, FontStyle.Underline);
+			_strikeoutFont = new FontWrapper(font, FontStyle.Strikeout);
+		}
 
-			RegularFont = _regularFont.ToHfont();
-			BoldFont = _boldFont.ToHfont();
+		public IntPtr GetHdc(FontStyle style)
+		{
+			return style switch
+			{
+				FontStyle.Regular => _regularFont.Hdc,
+				FontStyle.Bold => _boldFont.Hdc,
+				FontStyle.Italic => _italicFont.Hdc,
+				FontStyle.Underline => _underlineFont.Hdc,
+				FontStyle.Strikeout => _strikeoutFont.Hdc,
+				_ => throw new InvalidEnumArgumentException(nameof(style), (int)style, typeof(FontStyle))
+			};
 		}
 	}
 }

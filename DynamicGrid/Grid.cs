@@ -122,7 +122,7 @@ namespace DynamicGrid
 			_graphicsHdc = _graphics.GetHdc();
 			_cellBuffer = new CellBuffer();
 			_displayBuffer = new DisplayBuffer(_graphicsHdc);
-			_fontManager = new FontManager(_graphicsHdc);
+			_fontManager = new FontManager();
 
 			BackColor = Color.LightGray;
 
@@ -210,6 +210,7 @@ namespace DynamicGrid
 
 			var currentColor = null as Color?;
 			var currentAlignemnt = null as HorizontalAlignment?;
+			var currentFontStyle = null as FontStyle?;
 			var invalidatedRect = Rectangle.Empty;
 
 			for (int rowIndex = minRow; rowIndex <= maxRow; rowIndex++)
@@ -250,6 +251,12 @@ namespace DynamicGrid
 					{
 						currentAlignemnt = cell.Alignment;
 						Gdi32.SetTextAlignemnt(_displayBuffer.Hdc, cell.Alignment);
+					}
+
+					if (currentFontStyle != cell.FontStyle)
+					{
+						currentFontStyle = cell.FontStyle;
+						Gdi32.SelectObject(_displayBuffer.Hdc, _fontManager.GetHdc(cell.FontStyle));
 					}
 
 					Gdi32.PrintText(_displayBuffer.Hdc, croppedRectangle, cell.Alignment, cell.Text);
