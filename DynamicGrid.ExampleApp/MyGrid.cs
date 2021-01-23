@@ -61,6 +61,8 @@ namespace DynamicGrid.ExampleApp
 			//InvalidateColumn(Columns.ElementAt(3));
 			UpdateData();
 			Update();
+
+			VerticalOffset += 1;
 		}
 	}
 }

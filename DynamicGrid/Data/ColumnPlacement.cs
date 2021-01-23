@@ -13,6 +13,8 @@ namespace DynamicGrid.Data
 		public readonly int RealOffset;
 		public readonly int Width;
 
+		public int RealOffsetPlusWidth => RealOffset + Width;
+
 		public ColumnPlacement(int croppedIndex, int croppedOffset, int realOffset, int width)
 		{
 			CroppedIndex = croppedIndex;

@@ -27,13 +27,13 @@ namespace DynamicGrid.ExampleApp
 		private void OnHorizontalScrollBarValueChanged(object sender, EventArgs e)
 		{
 			_grid.HorizontalOffset = _horizontalScrollBar.Value;
-			_gridHeader.HorizontalScrollingOffset = _horizontalScrollBar.Value;
+			_gridHeader.HorizontalScrollingOffset = Math.Max(0, _horizontalScrollBar.Value);
 		}
 
 		private void OnColumnsChanged(object sender, DataGridViewColumnEventArgs e)
 		{
 			_grid.Columns = _gridHeader.Columns.OfType<DataGridViewColumn>().Select(c => c.Width);
-			_horizontalScrollBar.Maximum = _grid.Columns.Sum();
+			_horizontalScrollBar.Maximum = _grid.Columns.Sum() + 500;
 		}
 
 		protected override void OnSizeChanged(EventArgs e)

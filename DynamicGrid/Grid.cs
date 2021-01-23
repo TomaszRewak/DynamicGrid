@@ -79,12 +79,12 @@ namespace DynamicGrid
 		{
 			var oldMinColumn = VisibleColumns.MinColumn;
 			var newMinColumn = 0;
-			while (newMinColumn < _columns.Count - 1 && _columns[newMinColumn].RealOffset + _columns[newMinColumn].Width <= HorizontalOffset)
+			while (newMinColumn < _columns.Count - 1 && _columns[newMinColumn].RealOffsetPlusWidth <= HorizontalOffset)
 				newMinColumn++;
 
 			var oldMaxColumn = VisibleColumns.MaxColumn;
 			var newMaxColumn = newMinColumn;
-			while (newMaxColumn < _columns.Count - 1 && _columns[newMaxColumn].RealOffset + _columns[newMaxColumn].Width < HorizontalOffset + Width)
+			while (newMaxColumn < _columns.Count - 1 && _columns[newMaxColumn].RealOffsetPlusWidth < HorizontalOffset + Width)
 				newMaxColumn++;
 
 			VisibleColumns = (newMinColumn, newMaxColumn);
@@ -282,13 +282,51 @@ namespace DynamicGrid
 
 		protected override void OnPaint(PaintEventArgs e)
 		{
-			if (_columns.Count == 0)
+			var destinationRect = e.ClipRectangle;
+
+			var leftEdge = 0;
+			var rightEdge = _columns.Count == 0
+				? 0
+				: _columns[_columns.Count - 1].RealOffsetPlusWidth;
+
+			if (destinationRect.Left + HorizontalOffset < leftEdge)
 			{
-				base.OnPaint(e);
-				return;
+				var destination = destinationRect.Location;
+				var size = new Size(
+					Math.Min(destinationRect.Width, leftEdge - destinationRect.Left - HorizontalOffset),
+					destinationRect.Height);
+
+				Gdi32.SetBackgroundColor(_graphicsHdc, BackColor);
+				Gdi32.Fill(_graphicsHdc, new Rectangle(destination, size));
+
+				destinationRect = new Rectangle(
+					destinationRect.Left + size.Width,
+					destinationRect.Top,
+					destinationRect.Width - size.Width,
+					destinationRect.Height);
 			}
 
-			var destinationRect = e.ClipRectangle;
+			if (destinationRect.Right + HorizontalOffset >= rightEdge)
+			{
+				var destination = new Point(
+					Math.Max(destinationRect.Left, rightEdge - HorizontalOffset),
+					destinationRect.Top);
+				var size = new Size(
+					destinationRect.Width - Math.Max(0, rightEdge - HorizontalOffset - destinationRect.Left),
+					destinationRect.Height);
+
+				Gdi32.SetBackgroundColor(_graphicsHdc, BackColor);
+				Gdi32.Fill(_graphicsHdc, new Rectangle(destination, size));
+
+				destinationRect = new Rectangle(
+					destinationRect.Left,
+					destinationRect.Top,
+					destinationRect.Width - size.Width,
+					destinationRect.Height);
+			}
+
+			if (_columns.Count == 0)
+				return;
 
 			var minRow = VisibleRows.MinRow;
 			var minColumn = VisibleColumns.MinColumn;

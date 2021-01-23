@@ -40,6 +40,7 @@ namespace DynamicGrid.ExampleApp
 			_horizontalScrollBar.Size = new Size(800, 30);
 			_horizontalScrollBar.TabIndex = 2;
 			_horizontalScrollBar.ValueChanged += OnHorizontalScrollBarValueChanged;
+			_horizontalScrollBar.Minimum = -50;
 
 			AutoScaleDimensions = new SizeF(8F, 20F);
 			AutoScaleMode = AutoScaleMode.Font;
