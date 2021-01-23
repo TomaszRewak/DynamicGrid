@@ -37,7 +37,14 @@ namespace DynamicGrid.ExampleApp
 				(int)((1 + Math.Sin((double)now.Ticks / 20000000 + columnIndex * 0.1 + rowIndex * 0.2)) / 2 * 255),
 				(int)((1 + Math.Sin((double)now.Ticks / 30000000 + columnIndex * 0.5 + rowIndex * 0.05)) / 2 * 255));
 
-			return new Cell($"{Fps:####}fps X {now.Millisecond:D3} {rowIndex} {columnIndex}", HorizontalAlignment.Center, color);
+			var alignemnt = (columnIndex % 3) switch
+			{
+				0 => HorizontalAlignment.Left,
+				1 => HorizontalAlignment.Center,
+				_ => HorizontalAlignment.Right
+			};
+
+			return new Cell($"{Fps:####}fps X {now.Millisecond:D3} {rowIndex} {columnIndex}", alignemnt, color);
 		}
 
 		private void Step()

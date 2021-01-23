@@ -236,7 +236,6 @@ namespace DynamicGrid
 					var realRectangle = new Rectangle(realPosition, size);
 					var croppedRectangle = new Rectangle(croppedPosition, size);
 
-					var textPosition = new Point(size.Width / 2, 0);
 					var cellColor = cell.Color.A == byte.MaxValue
 						? cell.Color
 						: BackColor;
@@ -253,7 +252,7 @@ namespace DynamicGrid
 						Gdi32.SetTextAlignemnt(_displayBuffer.Hdc, cell.Alignment);
 					}
 
-					Gdi32.PrintText(_displayBuffer.Hdc, croppedRectangle, textPosition, cell.Text);
+					Gdi32.PrintText(_displayBuffer.Hdc, croppedRectangle, cell.Alignment, cell.Text);
 
 					invalidatedRect = RectangleUtils.Union(invalidatedRect, realRectangle);
 				}
@@ -395,9 +394,7 @@ namespace DynamicGrid
 		}
 
 		protected override void OnPaintBackground(PaintEventArgs e)
-		{
-			//base.OnPaintBackground(e); // TODO remove the base call
-		}
+		{ }
 
 		protected override void OnBackColorChanged(EventArgs e)
 		{

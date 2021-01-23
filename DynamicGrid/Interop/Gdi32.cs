@@ -34,16 +34,23 @@ namespace DynamicGrid.Interop
 			SetTextAlign(hdc, value);
 		}
 
-		public static void PrintText(IntPtr hdc, Rectangle rectangle, Point position, string text)
+		public static void PrintText(IntPtr hdc, Rectangle rectangle, HorizontalAlignment alignment, string text)
 		{
 			var rect = new RECT(rectangle.X, rectangle.Y, rectangle.Right, rectangle.Bottom);
+			var position = alignment switch
+			{
+				HorizontalAlignment.Left => new Point(2, 0),
+				HorizontalAlignment.Right => new Point(rectangle.Width - 2, 0),
+				HorizontalAlignment.Center => new Point(rectangle.Width / 2, 0),
+				_ => throw new InvalidEnumArgumentException(nameof(alignment), (int)alignment, typeof(HorizontalAlignment))
+			};
 
 			ExtTextOut(hdc, rectangle.X + position.X, rectangle.Y + position.Y, ETOOptions.OPAQUE | ETOOptions.CLIPPED, ref rect, text, (uint)text.Length, IntPtr.Zero);
 		}
 
 		public static void Fill(IntPtr hdc, Rectangle rectangle)
 		{
-			PrintText(hdc, rectangle, Point.Empty, string.Empty);
+			PrintText(hdc, rectangle, HorizontalAlignment.Center, string.Empty);
 		}
 
 		public static void Delete(IntPtr hdc)
