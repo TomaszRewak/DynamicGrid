@@ -8,8 +8,7 @@ namespace DynamicGrid.Buffers
 	{
 		private Cell[,] _cells = new Cell[0, 0];
 
-		private int Height => _cells.GetLength(0);
-		private int Width => _cells.GetLength(1);
+		public Size Capacity => new Size(_cells.GetLength(1), _cells.GetLength(0));
 
 		private Size _size;
 		public Size Size
@@ -19,36 +18,38 @@ namespace DynamicGrid.Buffers
 			{
 				_size = value;
 
-				if (value.Width <= Width && value.Height <= Height)
+				if (value.Width <= Capacity.Width &&
+					value.Width >= Capacity.Width / 4 &&
+					value.Height <= Capacity.Height &&
+					value.Height >= Capacity.Height / 4)
 					return;
 
-				_cells = new Cell[
-					Math.Max(value.Height * 2, Height),
-					Math.Max(value.Width * 2, Width)];
+				_cells = new Cell[value.Height * 2, value.Width * 2];
 			}
 		}
 
 		public void Clear(Color color)
 		{
-			for (var y = 0; y < Height; y++)
-				for (var x = 0; x < Width; x++)
+			for (var y = 0; y < Size.Height; y++)
+				for (var x = 0; x < Size.Width; x++)
 					_cells[y, x] = new Cell(color);
 		}
 
 		public void ClearColumn(int index, Color color)
 		{
-			if (index >= Width) return;
+			if (index < 0) return;
+			if (index >= Size.Width) return;
 
-			for (var y = 0; y < Height; y++)
+			for (var y = 0; y < Size.Height; y++)
 				_cells[y, index] = new Cell(color);
 		}
 
 		public bool TrySet(int row, int column, in Cell value)
 		{
 			Debug.Assert(column >= 0);
-			Debug.Assert(column < Width);
+			Debug.Assert(column < Capacity.Width);
 			Debug.Assert(row >= 0);
-			Debug.Assert(row < Height);
+			Debug.Assert(row < Capacity.Height);
 
 			ref var cell = ref _cells[row, column];
 			var changed = cell != value;
