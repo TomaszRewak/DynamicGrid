@@ -80,5 +80,54 @@ namespace DynamicGrid.ExampleApp
 
 			//VerticalOffset += 1;
 		}
+
+		protected override void OnCellClicked(MouseCellEventArgs e)
+		{
+			base.OnCellClicked(e);
+
+			Trace.WriteLine($"{e.Row}:{e.Coulmn} click");
+		}
+
+		protected override void OnCellDoubleClicked(MouseCellEventArgs e)
+		{
+			base.OnCellDoubleClicked(e);
+
+			Trace.WriteLine($"{e.Row}:{e.Coulmn} double click");
+		}
+
+		protected override void OnMouseDownOverCell(MouseCellEventArgs e)
+		{
+			base.OnMouseDownOverCell(e);
+
+			Trace.WriteLine($"{e.Row}:{e.Coulmn} down");
+		}
+
+		protected override void OnMouseUpOverCell(MouseCellEventArgs e)
+		{
+			base.OnMouseUpOverCell(e);
+
+			Trace.WriteLine($"{e.Row}:{e.Coulmn} up");
+		}
+
+		protected override void OnMouseMovedOverGrid(MouseCellEventArgs e)
+		{
+			base.OnMouseMovedOverGrid(e);
+
+			Trace.WriteLine($"{e.Row}:{e.Coulmn} moved");
+		}
+
+		protected override void OnMouseEnteredGrid(EventArgs e)
+		{
+			base.OnMouseEnteredGrid(e);
+
+			Trace.WriteLine($"entered");
+		}
+
+		protected override void OnMouseLeftGrid(EventArgs e)
+		{
+			base.OnMouseLeftGrid(e);
+
+			Trace.WriteLine($"left");
+		}
 	}
 }
