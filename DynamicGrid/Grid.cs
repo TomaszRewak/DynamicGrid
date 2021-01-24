@@ -199,7 +199,9 @@ namespace DynamicGrid
 				maxColumn - minColumn + 1,
 				maxRow - minRow + 1);
 
-			_invalidDataRegion = Rectangle.Intersect(VisibleCells, RectangleUtils.Union(_invalidDataRegion, region));
+			_invalidDataRegion = RectangleUtils.Union(
+				Rectangle.Intersect(VisibleCells, _invalidDataRegion),
+				Rectangle.Intersect(VisibleCells, region));
 		}
 
 		public void UpdateData()
@@ -278,7 +280,7 @@ namespace DynamicGrid
 
 			Invalidate(invalidatedRect);
 
-			Trace.WriteLine($"{minColumn}:{maxColumn} {minRow}:{maxRow} {invalidatedRect}");
+			//Trace.WriteLine($"{minColumn}:{maxColumn} {minRow}:{maxRow} {invalidatedRect}");
 		}
 
 		public void RefreshData()
@@ -437,22 +439,74 @@ namespace DynamicGrid
 		protected override void OnClick(EventArgs e)
 		{
 			base.OnClick(e);
+
+			if (e is not MouseEventArgs mouseEvent) return;
+
+			Trace.WriteLine($"{MousePosition.X} {MousePosition.Y}");
 		}
 
-		//private int GetColumnByOffset(int offset)
-		//{
+		protected override void OnMouseDown(MouseEventArgs e)
+		{
+			base.OnMouseDown(e);
+		}
 
-		//}
+		protected override void OnMouseUp(MouseEventArgs e)
+		{
+			base.OnMouseUp(e);
+		}
 
-		//private int GetRowByOffset(int offset)
-		//{
+		protected override void OnMouseMove(MouseEventArgs e)
+		{
+			base.OnMouseMove(e);
+		}
 
-		//}
+		private bool InPointInsideGrid(int x, int y)
+		{
+			if (_columns.Count == 0) return false;
+			if (x < -HorizontalOffset) return false;
+			if (x >= _columns[_columns.Count - 1].RealOffsetPlusWidth) return false;
 
-		//public event EventHandler<CellEventArgs> CellClick;
-		//public event EventHandler<CellEventArgs> CellDoubleClick;
-		//public event EventHandler<CellEventArgs> CellMouseDown;
-		//public event EventHandler<CellEventArgs> CellMouseUp;
-		//public event EventHandler<CellEventArgs> CellMouseMove;
+			return true;
+		}
+
+		private int GetRowIndex(int y)
+		{
+			y += VerticalOffset;
+
+			return y >= 0
+				? y / RowHeight
+				: (y - RowHeight + 1) / RowHeight + 1;
+		}
+
+		private int GetColumnIndex(int x, int hint)
+		{
+			if (_columns.Count == 0) return 0;
+
+			x += HorizontalOffset;
+			hint = MathUtils.Clip(0, hint, _columns.Count - 1);
+
+			if (x >= _columns[hint].RealOffset)
+			{
+				for (int c = hint; c < _columns.Count; c++)
+					if (x < _columns[c].RealOffsetPlusWidth)
+						return c;
+
+				return _columns.Count - 1;
+			}
+			else
+			{
+				for (int c = hint - 1; c >= 0; c--)
+					if (x >= _columns[c].RealOffset)
+						return c;
+
+				return 0;
+			}
+		}
+
+		public event EventHandler<CellEventArgs> CellClick;
+		public event EventHandler<CellEventArgs> CellDoubleClick;
+		public event EventHandler<CellEventArgs> CellMouseDown;
+		public event EventHandler<CellEventArgs> CellMouseUp;
+		public event EventHandler<CellEventArgs> CellMouseMove;
 	}
 }
