@@ -20,7 +20,12 @@ namespace DynamicGrid
 		private readonly CellBuffer _cellBuffer;
 		private readonly DisplayBuffer _displayBuffer;
 		private readonly FontManager _fontManager;
+
 		private Rectangle _invalidDataRegion = Rectangle.Empty;
+		private Point _mousePosition;
+		private (int Row, int Column) _mouseCell;
+		private bool _isMouseDown;
+		private bool _isMouseOver;
 
 		private readonly List<ColumnPlacement> _columns = new();
 		public IEnumerable<int> Columns
@@ -34,6 +39,8 @@ namespace DynamicGrid
 				ResizeBuffers();
 				RefreshData();
 				Refresh();
+
+				ColumnsChanged?.Invoke(this, EventArgs.Empty);
 			}
 		}
 
@@ -49,6 +56,8 @@ namespace DynamicGrid
 				UpdateVisibleColumns();
 				UpdateData();
 				Refresh();
+
+				HorizontalOffsetChanged?.Invoke(this, EventArgs.Empty);
 			}
 		}
 
@@ -64,6 +73,8 @@ namespace DynamicGrid
 				UpdateVisibleRows();
 				UpdateData();
 				Refresh();
+
+				VerticalOffsetChanged?.Invoke(this, EventArgs.Empty);
 			}
 		}
 
@@ -439,10 +450,21 @@ namespace DynamicGrid
 		protected override void OnClick(EventArgs e)
 		{
 			base.OnClick(e);
+		}
 
-			if (e is not MouseEventArgs mouseEvent) return;
+		protected virtual void OnCellClicked(MouseCellEventArgs e)
+		{
+			CellClicked?.Invoke(this, e);
+		}
 
-			Trace.WriteLine($"{MousePosition.X} {MousePosition.Y}");
+		protected override void OnDoubleClick(EventArgs e)
+		{
+			base.OnDoubleClick(e);
+		}
+
+		protected virtual void OnCellDoubleClicked(MouseCellEventArgs e)
+		{
+			CellDoubleClicked?.Invoke(this, e);
 		}
 
 		protected override void OnMouseDown(MouseEventArgs e)
@@ -450,9 +472,19 @@ namespace DynamicGrid
 			base.OnMouseDown(e);
 		}
 
+		protected virtual void OnMouseDownOverCell(MouseCellEventArgs e)
+		{
+			MouseDownOverCell?.Invoke(this, e);
+		}
+
 		protected override void OnMouseUp(MouseEventArgs e)
 		{
 			base.OnMouseUp(e);
+		}
+
+		protected virtual void OnMouseUpOverCell(MouseCellEventArgs e)
+		{
+			MouseUpOverCell?.Invoke(this, e);
 		}
 
 		protected override void OnMouseMove(MouseEventArgs e)
@@ -460,53 +492,73 @@ namespace DynamicGrid
 			base.OnMouseMove(e);
 		}
 
-		private bool InPointInsideGrid(int x, int y)
+		protected virtual void OnMouseMovedOverCell(MouseCellEventArgs e)
 		{
-			if (_columns.Count == 0) return false;
-			if (x < -HorizontalOffset) return false;
-			if (x >= _columns[_columns.Count - 1].RealOffsetPlusWidth) return false;
-
-			return true;
+			MouseMovedOverGrid?.Invoke(this, e);
 		}
 
-		private int GetRowIndex(int y)
+		protected override void OnMouseEnter(EventArgs e)
 		{
-			y += VerticalOffset;
+			base.OnMouseEnter(e);
+		}
 
-			return y >= 0
+		protected virtual void OnMouseEnteredGrid(EventArgs e)
+		{
+			MouseEnteredGrid?.Invoke(this, e);
+		}
+
+		protected override void OnMouseLeave(EventArgs e)
+		{
+			base.OnMouseLeave(e);
+		}
+
+		protected virtual void OnMouseLeftGrid(EventArgs e)
+		{
+			MouseLeftGrid?.Invoke(e);
+		}
+
+		private void ProcessMouseEvents()
+		{
+			var x = _mousePosition.X + HorizontalOffset;
+			var y = _mousePosition.Y + VerticalOffset;
+
+			var column = ColumnPlacement.GetColumnIndex(_columns, x, _mouseCell.Column);
+			var row = y >= 0
 				? y / RowHeight
-				: (y - RowHeight + 1) / RowHeight + 1;
-		}
+				: (y - RowHeight + 1) / RowHeight;
+			var isMouseOver =
+				_columns.Count >= 0 &&
+				x >= 0 &&
+				x < _columns[_columns.Count - 1].RealOffsetPlusWidth;
+			var cellChenged = row != _mouseCell.Row || column != _mouseCell.Column;
 
-		private int GetColumnIndex(int x, int hint)
-		{
-			if (_columns.Count == 0) return 0;
-
-			x += HorizontalOffset;
-			hint = MathUtils.Clip(0, hint, _columns.Count - 1);
-
-			if (x >= _columns[hint].RealOffset)
+			if (_isMouseDown)
 			{
-				for (int c = hint; c < _columns.Count; c++)
-					if (x < _columns[c].RealOffsetPlusWidth)
-						return c;
-
-				return _columns.Count - 1;
+				if (cellChenged)
+				{
+					OnCellMouseMove(new MouseCellEventArgs(row, column, MouseButtons));
+				}
 			}
-			else
+			else if (_isMouseOver && isMouseOver)
 			{
-				for (int c = hint - 1; c >= 0; c--)
-					if (x >= _columns[c].RealOffset)
-						return c;
+				OnCellMouseMove(new MouseCellEventArgs(row, column, MouseButtons));
+			}
 
-				return 0;
+			if (!_isMouseDown && isMouseOver && !_isMouseOver)
+			{
+				_isMouseOver = isMouseOver;
 			}
 		}
 
-		public event EventHandler<CellEventArgs> CellClick;
-		public event EventHandler<CellEventArgs> CellDoubleClick;
-		public event EventHandler<CellEventArgs> CellMouseDown;
-		public event EventHandler<CellEventArgs> CellMouseUp;
-		public event EventHandler<CellEventArgs> CellMouseMove;
+		public event EventHandler<EventArgs> ColumnsChanged;
+		public event EventHandler<EventArgs> HorizontalOffsetChanged;
+		public event EventHandler<EventArgs> VerticalOffsetChanged;
+		public event EventHandler<MouseCellEventArgs> CellClicked;
+		public event EventHandler<MouseCellEventArgs> CellDoubleClicked;
+		public event EventHandler<MouseCellEventArgs> MouseDownOverCell;
+		public event EventHandler<MouseCellEventArgs> MouseUpOverCell;
+		public event EventHandler<MouseCellEventArgs> MouseMovedOverGrid;
+		public event EventHandler<EventArgs> MouseLeftGrid;
+		public event EventHandler<EventArgs> MouseEnteredGrid;
 	}
 }

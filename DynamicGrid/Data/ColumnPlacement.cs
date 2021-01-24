@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DynamicGrid.Utils;
+using System;
 using System.Collections.Generic;
 
 namespace DynamicGrid.Data
@@ -23,6 +24,30 @@ namespace DynamicGrid.Data
 			RealOffset = realOffset;
 			Width = width;
 			CroppedRowWidth = croppedRowWidth;
+		}
+
+		public static int GetColumnIndex(List<ColumnPlacement> columns, int offset, int hint)
+		{
+			if (columns.Count == 0) return 0;
+
+			hint = MathUtils.Clip(0, hint, columns.Count - 1);
+
+			if (offset >= columns[hint].RealOffset)
+			{
+				for (int c = hint; c < columns.Count; c++)
+					if (offset < columns[c].RealOffsetPlusWidth)
+						return c;
+
+				return columns.Count - 1;
+			}
+			else
+			{
+				for (int c = hint - 1; c >= 0; c--)
+					if (offset >= columns[c].RealOffset)
+						return c;
+
+				return 0;
+			}
 		}
 
 		public static void CalculatePlacement(IEnumerable<int> columnWidths, int containerWidth, List<ColumnPlacement> columnPlacement)
