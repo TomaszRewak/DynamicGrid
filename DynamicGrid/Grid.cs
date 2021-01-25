@@ -83,13 +83,13 @@ namespace DynamicGrid
 		}
 
 		public int RowHeight => _fontManager.FontHeight + 1;
-		private Rectangle VisibleCells => new Rectangle(
+		public Rectangle VisibleCells => new Rectangle(
 			VisibleColumns.MinColumn,
 			VisibleRows.MinRow,
 			VisibleColumns.MaxColumn - VisibleColumns.MinColumn + 1,
 			VisibleRows.MaxRow - VisibleRows.MinRow + 1);
 
-		private (int MinColumn, int MaxColumn) VisibleColumns { get; set; }
+		public (int MinColumn, int MaxColumn) VisibleColumns { get; private set; }
 		private void UpdateVisibleColumns()
 		{
 			var oldMinColumn = VisibleColumns.MinColumn;
@@ -118,7 +118,7 @@ namespace DynamicGrid
 			}
 		}
 
-		private (int MinRow, int MaxRow) VisibleRows { get; set; }
+		public (int MinRow, int MaxRow) VisibleRows { get; private set; }
 		private void UpdateVisibleRows()
 		{
 			var oldMinRow = VisibleRows.MinRow;
