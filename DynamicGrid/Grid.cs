@@ -234,68 +234,75 @@ namespace DynamicGrid
 			minRow = Math.Max(minRow, _invalidDataRegion.Top);
 			maxRow = Math.Min(maxRow, _invalidDataRegion.Bottom - 1);
 
-			var currentColor = null as Color?;
-			var currentAlignemnt = null as HorizontalAlignment?;
-			var currentFontStyle = null as FontStyle?;
-			var invalidatedRect = Rectangle.Empty;
-
-			for (int rowIndex = minRow; rowIndex <= maxRow; rowIndex++)
-			{
-				for (int columnIndex = minColumn; columnIndex <= maxColumn; columnIndex++)
-				{
-					var cell = GetCell(rowIndex, columnIndex);
-
-					var croppedRowIndex = _cellBuffer.CropRow(rowIndex);
-					var croppedColumnIndex = _columns[columnIndex].CroppedIndex;
-					var changed = _cellBuffer.TrySet(croppedRowIndex, croppedColumnIndex, in cell);
-
-					if (!changed) continue;
-
-					var size = new Size(
-						_columns[columnIndex].Width - 1,
-						RowHeight - 1);
-					var realPosition = new Point(
-						_columns[columnIndex].RealOffset - HorizontalOffset,
-						RowHeight * rowIndex - VerticalOffset);
-					var croppedPosition = new Point(
-						_columns[columnIndex].CroppedOffset,
-						RowHeight * croppedRowIndex);
-					var realRectangle = new Rectangle(realPosition, size);
-					var croppedRectangle = new Rectangle(croppedPosition, size);
-
-					var cellColor = cell.Color.A == byte.MaxValue
-						? cell.Color
-						: BackColor;
-
-					if (currentColor != cellColor)
-					{
-						currentColor = cellColor;
-						Gdi32.SetBackgroundColor(_displayBuffer.Hdc, cellColor);
-					}
-
-					if (currentAlignemnt != cell.Alignment)
-					{
-						currentAlignemnt = cell.Alignment;
-						Gdi32.SetTextAlignemnt(_displayBuffer.Hdc, cell.Alignment);
-					}
-
-					if (currentFontStyle != cell.FontStyle)
-					{
-						currentFontStyle = cell.FontStyle;
-						Gdi32.SelectObject(_displayBuffer.Hdc, _fontManager.GetHdc(cell.FontStyle));
-					}
-
-					Gdi32.PrintText(_displayBuffer.Hdc, croppedRectangle, cell.Alignment, cell.Text);
-
-					invalidatedRect = RectangleUtils.Union(invalidatedRect, realRectangle);
-				}
-			}
-
 			_invalidDataRegion = Rectangle.Empty;
 
-			Invalidate(invalidatedRect);
+			CellRenderingContext renderingContext = new CellRenderingContext();
 
-			//Trace.WriteLine($"{minColumn}:{maxColumn} {minRow}:{maxRow} {invalidatedRect}");
+			for (int rowIndex = minRow; rowIndex <= maxRow; rowIndex++)
+				for (int columnIndex = minColumn; columnIndex <= maxColumn; columnIndex++)
+					UpdateCellData(rowIndex, columnIndex, GetCell(rowIndex, columnIndex), ref renderingContext);
+
+			Invalidate(renderingContext.InvalidatedRect);
+		}
+
+		public void UpdateCellData(int row, int column, in Cell cell)
+		{
+			if (_columns.Count == 0) return;
+			if (row < VisibleRows.MinRow || row > VisibleRows.MaxRow) return;
+			if (column < VisibleColumns.MinColumn || column > VisibleColumns.MaxColumn) return;
+
+			CellRenderingContext renderingContext = new CellRenderingContext();
+
+			UpdateCellData(row, column, cell, ref renderingContext);
+
+			Invalidate(renderingContext.InvalidatedRect);
+		}
+
+		private void UpdateCellData(int rowIndex, int columnIndex, in Cell cell, ref CellRenderingContext renderingContext)
+		{
+			var croppedRowIndex = _cellBuffer.CropRow(rowIndex);
+			var croppedColumnIndex = _columns[columnIndex].CroppedIndex;
+			var changed = _cellBuffer.TrySet(croppedRowIndex, croppedColumnIndex, in cell);
+
+			if (!changed) return;
+
+			var size = new Size(
+				_columns[columnIndex].Width - 1,
+				RowHeight - 1);
+			var realPosition = new Point(
+				_columns[columnIndex].RealOffset - HorizontalOffset,
+				RowHeight * rowIndex - VerticalOffset);
+			var croppedPosition = new Point(
+				_columns[columnIndex].CroppedOffset,
+				RowHeight * croppedRowIndex);
+			var realRectangle = new Rectangle(realPosition, size);
+			var croppedRectangle = new Rectangle(croppedPosition, size);
+
+			var cellColor = cell.Color.A == byte.MaxValue
+				? cell.Color
+				: BackColor;
+
+			if (renderingContext.CurrentColor != cellColor)
+			{
+				renderingContext.CurrentColor = cellColor;
+				Gdi32.SetBackgroundColor(_displayBuffer.Hdc, cellColor);
+			}
+
+			if (renderingContext.CurrentAlignemnt != cell.Alignment)
+			{
+				renderingContext.CurrentAlignemnt = cell.Alignment;
+				Gdi32.SetTextAlignemnt(_displayBuffer.Hdc, cell.Alignment);
+			}
+
+			if (renderingContext.CurrentFontStyle != cell.FontStyle)
+			{
+				renderingContext.CurrentFontStyle = cell.FontStyle;
+				Gdi32.SelectObject(_displayBuffer.Hdc, _fontManager.GetHdc(cell.FontStyle));
+			}
+
+			Gdi32.PrintText(_displayBuffer.Hdc, croppedRectangle, cell.Alignment, cell.Text);
+
+			renderingContext.InvalidatedRect = RectangleUtils.Union(renderingContext.InvalidatedRect, realRectangle);
 		}
 
 		public void RefreshData()
