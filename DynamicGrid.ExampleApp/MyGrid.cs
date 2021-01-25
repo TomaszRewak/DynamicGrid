@@ -66,8 +66,8 @@ namespace DynamicGrid.ExampleApp
 				_stopwatchCounter = 0;
 			}
 
-			//InvalidateData();
-			//InvalidateColumn(2);
+			InvalidateData();
+			InvalidateColumnData(7);
 			//InvalidateColumn(4);
 			//InvalidateRow(5);
 			//InvalidateRow(7);
@@ -78,7 +78,7 @@ namespace DynamicGrid.ExampleApp
 			UpdateData();
 			Update();
 
-			//VerticalOffset += 1;
+			VerticalOffset += 1;
 		}
 
 		protected override void OnCellClicked(MouseCellEventArgs e)
