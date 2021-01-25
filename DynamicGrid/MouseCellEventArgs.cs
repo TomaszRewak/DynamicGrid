@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 using System.Windows.Forms;
 
 namespace DynamicGrid
@@ -12,12 +8,16 @@ namespace DynamicGrid
 		public int Row { get; }
 		public int Coulmn { get; }
 		public MouseButtons MouseButtons { get; }
+		public Rectangle GridRect { get; }
+		public Rectangle ControlRect { get; }
 
-		public MouseCellEventArgs(int row, int column, MouseButtons mouseButtons)
+		public MouseCellEventArgs(int row, int column, MouseButtons mouseButtons, Rectangle gridRect, Rectangle controlRect)
 		{
 			Row = row;
 			Coulmn = column;
 			MouseButtons = mouseButtons;
+			GridRect = gridRect;
+			ControlRect = controlRect;
 		}
 	}
 }

@@ -559,7 +559,22 @@ namespace DynamicGrid
 			};
 		}
 
-		private MouseCellEventArgs CreateMouseCellEventArgs() => new MouseCellEventArgs(_mouseCell.Row, _mouseCell.Column, MouseButtons);
+		private MouseCellEventArgs CreateMouseCellEventArgs()
+		{
+			var gridRect = new Rectangle(
+				_columns[_mouseCell.Column].RealOffset,
+				_mouseCell.Row * RowHeight,
+				_columns[_mouseCell.Column].Width,
+				RowHeight);
+
+			var controlRect = new Rectangle(
+				gridRect.X - HorizontalOffset,
+				gridRect.Y - VerticalOffset,
+				gridRect.Width,
+				gridRect.Height);
+
+			return new MouseCellEventArgs(_mouseCell.Row, _mouseCell.Column, MouseButtons, gridRect, controlRect);
+		}
 
 		protected virtual void OnCellClicked(MouseCellEventArgs e) => CellClicked?.Invoke(this, e);
 		protected virtual void OnCellDoubleClicked(MouseCellEventArgs e) => CellDoubleClicked?.Invoke(this, e);

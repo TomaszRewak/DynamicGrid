@@ -85,35 +85,35 @@ namespace DynamicGrid.ExampleApp
 		{
 			base.OnCellClicked(e);
 
-			Trace.WriteLine($"{e.Row}:{e.Coulmn} click");
+			Trace.WriteLine($"{e.Row}:{e.Coulmn} click\t\t{e.GridRect.X}:{e.GridRect.Y}:{e.GridRect.Width}:{e.GridRect.Height}\t\t{e.ControlRect.X}:{e.ControlRect.Y}:{e.ControlRect.Width}:{e.ControlRect.Height}");
 		}
 
 		protected override void OnCellDoubleClicked(MouseCellEventArgs e)
 		{
 			base.OnCellDoubleClicked(e);
 
-			Trace.WriteLine($"{e.Row}:{e.Coulmn} double click");
+			Trace.WriteLine($"{e.Row}:{e.Coulmn} double click\t\t{e.GridRect.X}:{e.GridRect.Y}:{e.GridRect.Width}:{e.GridRect.Height}\t\t{e.ControlRect.X}:{e.ControlRect.Y}:{e.ControlRect.Width}:{e.ControlRect.Height}");
 		}
 
 		protected override void OnMouseDownOverCell(MouseCellEventArgs e)
 		{
 			base.OnMouseDownOverCell(e);
 
-			Trace.WriteLine($"{e.Row}:{e.Coulmn} down");
+			Trace.WriteLine($"{e.Row}:{e.Coulmn} down\t\t{e.GridRect.X}:{e.GridRect.Y}:{e.GridRect.Width}:{e.GridRect.Height}\t\t{e.ControlRect.X}:{e.ControlRect.Y}:{e.ControlRect.Width}:{e.ControlRect.Height}");
 		}
 
 		protected override void OnMouseUpOverCell(MouseCellEventArgs e)
 		{
 			base.OnMouseUpOverCell(e);
 
-			Trace.WriteLine($"{e.Row}:{e.Coulmn} up");
+			Trace.WriteLine($"{e.Row}:{e.Coulmn} up\t\t{e.GridRect.X}:{e.GridRect.Y}:{e.GridRect.Width}:{e.GridRect.Height}\t\t{e.ControlRect.X}:{e.ControlRect.Y}:{e.ControlRect.Width}:{e.ControlRect.Height}");
 		}
 
 		protected override void OnMouseMovedOverGrid(MouseCellEventArgs e)
 		{
 			base.OnMouseMovedOverGrid(e);
 
-			Trace.WriteLine($"{e.Row}:{e.Coulmn} moved");
+			Trace.WriteLine($"{e.Row}:{e.Coulmn} moved\t\t{e.GridRect.X}:{e.GridRect.Y}:{e.GridRect.Width}:{e.GridRect.Height}\t\t{e.ControlRect.X}:{e.ControlRect.Y}:{e.ControlRect.Width}:{e.ControlRect.Height}");
 		}
 
 		protected override void OnMouseEnteredGrid(EventArgs e)
