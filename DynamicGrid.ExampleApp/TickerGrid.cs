@@ -48,7 +48,7 @@ namespace DynamicGrid.ExampleApp
 				VerticalOffset -= RowHeight;
 		}
 
-		public override Cell GetCell(int rowIndex, int columnIndex)
+		protected override Cell GetCell(int rowIndex, int columnIndex)
 		{
 			var itemIndex = -rowIndex - 1;
 

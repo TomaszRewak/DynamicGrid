@@ -153,7 +153,7 @@ namespace DynamicGrid
 			_fontManager.Load(Font);
 		}
 
-		public virtual Cell GetCell(int rowIndex, int columnIndex) => Cell.Empty;
+		protected virtual Cell GetCell(int rowIndex, int columnIndex) => Cell.Empty;
 
 		private void ResizeBuffers()
 		{

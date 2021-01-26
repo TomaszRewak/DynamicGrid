@@ -20,6 +20,7 @@ namespace DynamicGrid.ExampleApp
 
 			new ColorfulForm().Show();
 			new TickerForm().Show();
+			new FollowerForm().Show();
 
 			Application.Run(new Form());
 		}

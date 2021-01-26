@@ -28,7 +28,7 @@ namespace DynamicGrid.ExampleApp
 				Dispatcher.CurrentDispatcher);
 		}
 
-		public override Cell GetCell(int rowIndex, int columnIndex)
+		protected override Cell GetCell(int rowIndex, int columnIndex)
 		{
 			var now = DateTime.Now;
 
