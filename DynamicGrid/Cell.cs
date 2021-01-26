@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DynamicGrid.Utils;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -29,6 +30,8 @@ namespace DynamicGrid
 		}
 
 		public static Cell Empty => new Cell(Color.Transparent);
+
+		public Cell Highlight(Color color, double ratio = 0.5) => new Cell(Text, ColorUtils.Mix(Color, color, ratio), Alignment, FontStyle);
 
 		public static bool operator !=(in Cell lhs, in Cell rhs) => !(lhs == rhs);
 		public static bool operator ==(in Cell lhs, in Cell rhs) =>

@@ -5,12 +5,12 @@ namespace DynamicGrid.Utils
 {
 	internal static class ColorUtils
 	{
-		public static Color Mix(Color lhs, Color rhs, double ratioOfLhs)
+		public static Color Mix(Color lhs, Color rhs, double ratioOfRhs)
 		{
-			Debug.Assert(ratioOfLhs >= 0);
-			Debug.Assert(ratioOfLhs <= 1);
+			Debug.Assert(ratioOfRhs >= 0);
+			Debug.Assert(ratioOfRhs <= 1);
 
-			double ratioOfRhs = (1 - ratioOfLhs);
+			double ratioOfLhs = (1 - ratioOfRhs);
 
 			return Color.FromArgb(
 				(int)(lhs.R * ratioOfLhs + rhs.R * ratioOfRhs),

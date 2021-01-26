@@ -1,18 +1,36 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
+using System.Data;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace DynamicGrid.ExampleApp
 {
 	[DesignerCategory("")]
-	partial class Form1
+	internal sealed class ColorfulForm : Form
 	{
-		private void InitializeComponent()
+		private readonly DataGridView _gridHeader;
+		private readonly ColorfulGrid _grid;
+		private readonly HScrollBar _horizontalScrollBar;
+
+		public ColorfulForm()
 		{
 			_gridHeader = new DataGridView();
-			_grid = new MyGrid();
+			_grid = new ColorfulGrid();
 			_horizontalScrollBar = new HScrollBar();
 
+			InitializeComponents();
+
+			_gridHeader.Columns.AddRange(Enumerable.Range(0, 200).Select(c => new DataGridViewTextBoxColumn()
+			{
+				HeaderText = $"Column {c}",
+				Width = 150
+			}).ToArray());
+		}
+
+		private void InitializeComponents()
+		{
 			SuspendLayout();
 
 			_gridHeader.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
@@ -48,15 +66,36 @@ namespace DynamicGrid.ExampleApp
 			Controls.Add(_gridHeader);
 			Controls.Add(_grid);
 			Controls.Add(_horizontalScrollBar);
-			Name = "Form1";
-			Text = "Form1";
+			Name = "ColorfulForm";
+			Text = "ColorfulForm";
 
 			ResumeLayout(false);
 		}
 
-		private DataGridView _gridHeader;
-		private MyGrid _grid;
-		private HScrollBar _horizontalScrollBar;
+		private void OnHorizontalScrollBarValueChanged(object sender, EventArgs e)
+		{
+			_grid.HorizontalOffset = _horizontalScrollBar.Value;
+			_gridHeader.HorizontalScrollingOffset = Math.Max(0, _horizontalScrollBar.Value);
+		}
+
+		private void OnColumnsChanged(object sender, DataGridViewColumnEventArgs e)
+		{
+			_grid.Columns = _gridHeader.Columns.OfType<DataGridViewColumn>().Select(c => c.Width);
+			_horizontalScrollBar.Maximum = _grid.Columns.Sum() + 500;
+		}
+
+		protected override void OnSizeChanged(EventArgs e)
+		{
+			base.OnSizeChanged(e);
+
+			_horizontalScrollBar.LargeChange = ClientSize.Width;
+		}
+
+		protected override void OnMouseWheel(MouseEventArgs e)
+		{
+			base.OnMouseWheel(e);
+
+			_grid.VerticalOffset -= Math.Sign(e.Delta) * 4;
+		}
 	}
 }
-

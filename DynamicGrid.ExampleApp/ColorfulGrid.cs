@@ -10,14 +10,14 @@ using System.Windows.Threading;
 
 namespace DynamicGrid.ExampleApp
 {
-	internal sealed class MyGrid : Grid
+	internal sealed class ColorfulGrid : Grid
 	{
 		private readonly Stopwatch _stopwatch;
 		private int _stopwatchCounter;
 
 		public double Fps { get; private set; }
 
-		public MyGrid()
+		public ColorfulGrid()
 		{
 			_stopwatch = Stopwatch.StartNew();
 
@@ -79,55 +79,6 @@ namespace DynamicGrid.ExampleApp
 			Update();
 
 			//VerticalOffset += 1;
-		}
-
-		protected override void OnCellClicked(MouseCellEventArgs e)
-		{
-			base.OnCellClicked(e);
-
-			Trace.WriteLine($"{e.Row}:{e.Coulmn} click\t\t{e.GridRect.X}:{e.GridRect.Y}:{e.GridRect.Width}:{e.GridRect.Height}\t\t{e.ControlRect.X}:{e.ControlRect.Y}:{e.ControlRect.Width}:{e.ControlRect.Height}");
-		}
-
-		protected override void OnCellDoubleClicked(MouseCellEventArgs e)
-		{
-			base.OnCellDoubleClicked(e);
-
-			Trace.WriteLine($"{e.Row}:{e.Coulmn} double click\t\t{e.GridRect.X}:{e.GridRect.Y}:{e.GridRect.Width}:{e.GridRect.Height}\t\t{e.ControlRect.X}:{e.ControlRect.Y}:{e.ControlRect.Width}:{e.ControlRect.Height}");
-		}
-
-		protected override void OnMouseDownOverCell(MouseCellEventArgs e)
-		{
-			base.OnMouseDownOverCell(e);
-
-			Trace.WriteLine($"{e.Row}:{e.Coulmn} down\t\t{e.GridRect.X}:{e.GridRect.Y}:{e.GridRect.Width}:{e.GridRect.Height}\t\t{e.ControlRect.X}:{e.ControlRect.Y}:{e.ControlRect.Width}:{e.ControlRect.Height}");
-		}
-
-		protected override void OnMouseUpOverCell(MouseCellEventArgs e)
-		{
-			base.OnMouseUpOverCell(e);
-
-			Trace.WriteLine($"{e.Row}:{e.Coulmn} up\t\t{e.GridRect.X}:{e.GridRect.Y}:{e.GridRect.Width}:{e.GridRect.Height}\t\t{e.ControlRect.X}:{e.ControlRect.Y}:{e.ControlRect.Width}:{e.ControlRect.Height}");
-		}
-
-		protected override void OnMouseMovedOverGrid(MouseCellEventArgs e)
-		{
-			base.OnMouseMovedOverGrid(e);
-
-			Trace.WriteLine($"{e.Row}:{e.Coulmn} moved\t\t{e.GridRect.X}:{e.GridRect.Y}:{e.GridRect.Width}:{e.GridRect.Height}\t\t{e.ControlRect.X}:{e.ControlRect.Y}:{e.ControlRect.Width}:{e.ControlRect.Height}");
-		}
-
-		protected override void OnMouseEnteredGrid(EventArgs e)
-		{
-			base.OnMouseEnteredGrid(e);
-
-			Trace.WriteLine($"entered");
-		}
-
-		protected override void OnMouseLeftGrid(EventArgs e)
-		{
-			base.OnMouseLeftGrid(e);
-
-			Trace.WriteLine($"left");
 		}
 	}
 }
