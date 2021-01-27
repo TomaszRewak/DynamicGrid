@@ -22,6 +22,7 @@ namespace DynamicGrid.ExampleApp
 				if (_selectedRow == value) return;
 				InvalidateRowData(_selectedRow);
 				_selectedRow = value;
+				UpdateData();
 				InvalidateRowData(_selectedRow);
 				UpdateData();
 			}

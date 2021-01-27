@@ -12,5 +12,10 @@ namespace DynamicGrid.Utils
 		{
 			return Math.Max(min, Math.Min(value, max));
 		}
+
+		public static double Clip(double min, double value, double max)
+		{
+			return Math.Max(min, Math.Min(value, max));
+		}
 	}
 }

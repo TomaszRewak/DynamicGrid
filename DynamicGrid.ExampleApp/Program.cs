@@ -18,11 +18,11 @@ namespace DynamicGrid.ExampleApp
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
 
-			new ColorfulForm().Show();
 			new TickerForm().Show();
 			new FollowerForm().Show();
+			new SelectionForm().Show();
 
-			Application.Run(new Form());
+			Application.Run(new ColorfulForm());
 		}
 	}
 }
