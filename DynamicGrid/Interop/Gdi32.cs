@@ -36,6 +36,8 @@ namespace DynamicGrid.Interop
 
 		public static void PrintText(IntPtr hdc, Rectangle rectangle, HorizontalAlignment alignment, string text)
 		{
+			text ??= string.Empty;
+
 			var rect = new RECT(rectangle.X, rectangle.Y, rectangle.Right, rectangle.Bottom);
 			var position = alignment switch
 			{

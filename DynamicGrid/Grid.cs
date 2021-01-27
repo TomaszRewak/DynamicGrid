@@ -278,9 +278,7 @@ namespace DynamicGrid
 			var realRectangle = new Rectangle(realPosition, size);
 			var croppedRectangle = new Rectangle(croppedPosition, size);
 
-			var cellColor = cell.Color.A == byte.MaxValue
-				? cell.Color
-				: BackColor;
+			var cellColor = cell.BackgroundColor ?? BackColor;
 
 			if (renderingContext.CurrentColor != cellColor)
 			{

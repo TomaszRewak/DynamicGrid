@@ -26,13 +26,14 @@ namespace DynamicGrid.ExampleApp
 			_textBox.TextChanged += OnTextChanged;
 			_textBox.PreviewKeyDown += OnKeyDown;
 
+			BackColor = Color.LightBlue;
 			Controls.Add(_textBox);
 			Columns = Enumerable.Repeat(25, 32);
 		}
 
 		protected override Cell GetCell(int rowIndex, int columnIndex)
 		{
-			var cell = new Cell(Color.White);
+			var cell = new Cell(backgroundColor: Color.White);
 			var isSelected = _selection.Contains((rowIndex, columnIndex));
 
 			if (isSelected && _textBox.Text != string.Empty)

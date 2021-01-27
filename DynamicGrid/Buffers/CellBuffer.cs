@@ -32,7 +32,7 @@ namespace DynamicGrid.Buffers
 		{
 			for (var y = 0; y < Size.Height; y++)
 				for (var x = 0; x < Size.Width; x++)
-					_cells[y, x] = new Cell(color);
+					_cells[y, x] = new Cell(backgroundColor: color);
 		}
 
 		public void ClearColumn(int index, Color color)
@@ -41,7 +41,7 @@ namespace DynamicGrid.Buffers
 			if (index >= Size.Width) return;
 
 			for (var y = 0; y < Size.Height; y++)
-				_cells[y, index] = new Cell(color);
+				_cells[y, index] = new Cell(backgroundColor: color);
 		}
 
 		public bool TrySet(int row, int column, in Cell value)

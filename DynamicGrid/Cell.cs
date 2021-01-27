@@ -14,29 +14,32 @@ namespace DynamicGrid
 		public string Text { get; }
 		public HorizontalAlignment Alignment { get; }
 		public FontStyle FontStyle { get; }
-		public Color Color { get; }
+		public Color? BackgroundColor { get; }
+		public Color? ForegroundColor { get; }
 
-		public Cell(Color color) : this(string.Empty, color: color) { }
 		public Cell(
-			string text,
-			Color color,
+			string text = default,
+			Color? backgroundColor = null,
+			Color? foregroundColor = null,
 			HorizontalAlignment alignment = HorizontalAlignment.Center,
 			FontStyle fontStyle = FontStyle.Regular)
 		{
 			Text = text;
-			Color = color;
+			BackgroundColor = backgroundColor;
+			ForegroundColor = foregroundColor;
 			Alignment = alignment;
 			FontStyle = fontStyle;
 		}
 
-		public static Cell Empty => new Cell(Color.Transparent);
-
-		public Cell Highlight(Color color, double ratio = 0.5) => new Cell(Text, ColorUtils.Mix(Color, color, ratio), Alignment, FontStyle);
+		public static Cell Empty => new();
+		public Cell Highlight(Color color, double ratio = 0.5) => new(Text, ColorUtils.Mix(BackgroundColor ?? Color.White, color, ratio), ForegroundColor, Alignment, FontStyle);
 
 		public static bool operator !=(in Cell lhs, in Cell rhs) => !(lhs == rhs);
 		public static bool operator ==(in Cell lhs, in Cell rhs) =>
-			lhs.Color == rhs.Color &&
+			lhs.BackgroundColor == rhs.BackgroundColor &&
+			lhs.ForegroundColor == rhs.ForegroundColor &&
 			lhs.Alignment == rhs.Alignment &&
+			lhs.FontStyle == rhs.FontStyle &&
 			string.CompareOrdinal(lhs.Text, rhs.Text) == 0;
 
 		public override bool Equals(object obj) => obj is Cell cell && cell == this;

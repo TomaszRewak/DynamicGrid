@@ -53,7 +53,7 @@ namespace DynamicGrid.ExampleApp
 				_ => FontStyle.Underline
 			};
 
-			return new Cell($"{Fps:####}fps X {now.Millisecond:D3} {rowIndex} {columnIndex}", color, alignemnt, style);
+			return new Cell($"{Fps:####}fps X {now.Millisecond:D3} {rowIndex} {columnIndex}", color, Color.Black, alignemnt, style);
 		}
 
 		private void Step()
