@@ -58,9 +58,9 @@ namespace DynamicGrid.ExampleApp
 
 			var cell = columnIndex switch
 			{
-				0 => new Cell(itemIndex.ToString(), Color.Gray),
+				0 => new Cell(itemIndex.ToString(), Color.Gray, Color.White),
 				1 => new Cell(_items[itemIndex].ToLongTimeString(), Color.White),
-				2 => new Cell(DateTime.Now.ToLongTimeString(), Color.White),
+				2 => new Cell(DateTime.Now.ToLongTimeString(), Color.White, Color.IndianRed),
 				_ => throw new NotImplementedException()
 			};
 

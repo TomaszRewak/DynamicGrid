@@ -278,12 +278,19 @@ namespace DynamicGrid
 			var realRectangle = new Rectangle(realPosition, size);
 			var croppedRectangle = new Rectangle(croppedPosition, size);
 
-			var cellColor = cell.BackgroundColor ?? BackColor;
+			var backgroundColor = cell.BackgroundColor ?? BackColor;
+			var foregroundColor = cell.ForegroundColor ?? ForeColor;
 
-			if (renderingContext.CurrentColor != cellColor)
+			if (renderingContext.CurrentBackgroundColor != backgroundColor)
 			{
-				renderingContext.CurrentColor = cellColor;
-				Gdi32.SetBackgroundColor(_displayBuffer.Hdc, cellColor);
+				renderingContext.CurrentBackgroundColor = backgroundColor;
+				Gdi32.SetBackgroundColor(_displayBuffer.Hdc, backgroundColor);
+			}
+
+			if (renderingContext.CurrentForegroundColor != foregroundColor)
+			{
+				renderingContext.CurrentForegroundColor = foregroundColor;
+				Gdi32.SetForegroundColor(_displayBuffer.Hdc, foregroundColor);
 			}
 
 			if (renderingContext.CurrentAlignemnt != cell.Alignment)

@@ -13,6 +13,11 @@ namespace DynamicGrid.Interop
 			var value = (((color.B << 8) | color.G) << 8) | color.R;
 			SetBkColor(hdc, value);
 		}
+		public static void SetForegroundColor(IntPtr hdc, Color color)
+		{
+			var value = (((color.B << 8) | color.G) << 8) | color.R;
+			SetTextColor(hdc, value);
+		}
 
 		public static void Copy(IntPtr source, Point sourcePosition, IntPtr target, Point targetPosition, Size size)
 		{
@@ -79,6 +84,9 @@ namespace DynamicGrid.Interop
 
 		[DllImport("gdi32.dll")]
 		private static extern uint SetBkColor(IntPtr hdc, int crColor);
+
+		[DllImport("gdi32.dll")]
+		private static extern uint SetTextColor(IntPtr hdc, int crColor);
 
 		[DllImport("gdi32.dll", EntryPoint = "BitBlt", SetLastError = true)]
 		[return: MarshalAs(UnmanagedType.Bool)]
