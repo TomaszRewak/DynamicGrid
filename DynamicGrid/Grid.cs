@@ -12,6 +12,9 @@ using System.Windows.Forms;
 
 namespace DynamicGrid
 {
+	/// <summary>
+	/// Defines a base class for high performance grid controls.
+	/// </summary>
 	[System.ComponentModel.DesignerCategory("")]
 	public abstract class Grid : Control
 	{
@@ -29,6 +32,9 @@ namespace DynamicGrid
 		private bool _isMouseDownOverGrid;
 
 		private readonly List<ColumnPlacement> _columns = new();
+		/// <summary>
+		/// Gets or sets column widths. The provided collection is also being used to determine the number of columns to be displayed.
+		/// </summary>
 		public IEnumerable<int> Columns
 		{
 			get => _columns.Select(c => c.Width);
@@ -47,6 +53,10 @@ namespace DynamicGrid
 		}
 
 		private int _horizontalOffset;
+		/// <summary>
+		/// Horizontal offset applied to the content of the control.
+		/// It's highly recommended to use this property over placing the <c>Grid</c> in a scrollable panel. This way the grid can avoid processing and rendering of invisible columns (columns that are out of the scrolling area).
+		/// </summary>
 		public int HorizontalOffset
 		{
 			get => _horizontalOffset;
@@ -65,6 +75,10 @@ namespace DynamicGrid
 		}
 
 		private int _verticalOffset;
+		/// <summary>
+		/// Vertical offset applied to the content of the control.
+		/// It's highly recommended to use this property over placing the <c>Grid</c> in a scrollable panel. This way the grid can avoid processing and rendering of invisible rows (rows that are out of the scrolling area).
+		/// </summary>
 		public int VerticalOffset
 		{
 			get => _verticalOffset;
@@ -82,13 +96,32 @@ namespace DynamicGrid
 			}
 		}
 
+		/// <summary>
+		/// Height of a single row. This height includes a cell height and one extra pixel reserved for a bottom border.
+		/// </summary>
+		/// <remarks>
+		/// This is a read only property. The height of a cell is derived directly from the font size and can by altered by changing it.
+		/// </remarks>
 		public int RowHeight => _fontManager.FontHeight + 1;
+
+		/// <summary>
+		/// A <c>Rectangle</c> representing column and row indexes visible within the current working area of the grid.
+		/// </summary>
+		/// <remarks>
+		/// The value of this property can be affected by both the size of the control, as well as applied <see cref="HorizontalOffset"/> and <see cref="VerticalOffset"/>.
+		/// </remarks>
 		public Rectangle VisibleCells => new Rectangle(
 			VisibleColumns.MinColumn,
 			VisibleRows.MinRow,
 			VisibleColumns.MaxColumn - VisibleColumns.MinColumn + 1,
 			VisibleRows.MaxRow - VisibleRows.MinRow + 1);
 
+		/// <summary>
+		/// An (inclusive) range of column indexes that are visible within the current working area of the grid.
+		/// </summary>
+		/// <remarks>
+		/// Range of visible columns is directly affected by the control width, as well as configured <see cref="Columns"/> and the applied <see cref="HorizontalOffset"/>.
+		/// </remarks>
 		public (int MinColumn, int MaxColumn) VisibleColumns { get; private set; }
 		private void UpdateVisibleColumns()
 		{
@@ -118,6 +151,12 @@ namespace DynamicGrid
 			}
 		}
 
+		/// <summary>
+		/// An (inclusive) range of row indexes that are visible within the current working area of the grid.
+		/// </summary>
+		/// <remarks>
+		/// Range of visible rows is directly affected by the control height, as well as the configured <see cref="RowHeight"/> and the applied <see cref="HorizontalOffset"/>.
+		/// </remarks>
 		public (int MinRow, int MaxRow) VisibleRows { get; private set; }
 		private void UpdateVisibleRows()
 		{
@@ -153,6 +192,12 @@ namespace DynamicGrid
 			_fontManager.Load(Font);
 		}
 
+		/// <summary>
+		/// A virtual method to be overwritten by a deriving class to provides the cell content and layout for requested cell coordinates.
+		/// </summary>
+		/// <remarks>
+		/// When the data invalidation occurs, this method will be called only for cells within the <see cref="VisibleCells"/> region.
+		/// </remarks>
 		protected virtual Cell GetCell(int rowIndex, int columnIndex) => Cell.Empty;
 
 		private void ResizeBuffers()
@@ -179,6 +224,10 @@ namespace DynamicGrid
 			InvalidateData();
 		}
 
+		/// <summary>
+		/// Invalidates content and layout of all cells within the <see cref="VisibleCells"/> region.
+		/// </summary>
+		/// <seealso cref="UpdateData"/>
 		public void InvalidateData()
 		{
 			var (minColumn, maxColumn) = VisibleColumns;
@@ -187,6 +236,11 @@ namespace DynamicGrid
 			InvalidateData(minRow, maxRow, minColumn, maxColumn);
 		}
 
+		/// <summary>
+		/// Invalidates content and layout of all visible cells within a given row.
+		/// </summary>
+		/// <param name="row">Index of a row to be invalidated.</param>
+		/// <seealso cref="UpdateData"/>
 		public void InvalidateRowData(int row)
 		{
 			var (minColumn, maxColumn) = VisibleColumns;
@@ -194,6 +248,11 @@ namespace DynamicGrid
 			InvalidateData(row, row, minColumn, maxColumn);
 		}
 
+		/// <summary>
+		/// Invalidates content and layout of all visible cells within a given column.
+		/// </summary>
+		/// <param name="column">Index of a column to be invalidated.</param>
+		/// <seealso cref="UpdateData"/>
 		public void InvalidateColumnData(int column)
 		{
 			var (minRow, maxRow) = VisibleRows;
@@ -201,11 +260,21 @@ namespace DynamicGrid
 			InvalidateData(minRow, maxRow, column, column);
 		}
 
+		/// <summary>
+		/// Invalidates the content and layout of a specific cell.
+		/// </summary>
+		/// <param name="row">Row index of a cell to be invalidated.</param>
+		/// <param name="column">Column index of a cell to be invalidated.</param>
+		/// <seealso cref="UpdateData"/>
 		public void InvalidateCellData(int row, int column)
 		{
 			InvalidateData(row, row, column, column);
 		}
 
+		/// <summary>
+		/// Invalidates content and layout of all visible cells within the specified region
+		/// </summary>
+		/// <seealso cref="UpdateData"/>
 		public void InvalidateData(int minRow, int maxRow, int minColumn, int maxColumn)
 		{
 			var region = new Rectangle(
@@ -219,6 +288,13 @@ namespace DynamicGrid
 				Rectangle.Intersect(VisibleCells, region));
 		}
 
+		/// <summary>
+		/// Causes the grid to fetch (using the <see cref="GetCell(int, int)"/> method) the current content and layout of invalidated cells and paints those cells on an internal buffer if changed.
+		/// </summary>
+		/// <remarks>
+		/// Execution of this method will result in an invalidation of a control region affected by the data update. The visual changed can be later flushed to the screen using the <see cref="Control.Update"/> method or by waiting for the next draw cycle.
+		/// This operation clears the accumulated data invalidation region.
+		/// </remarks>
 		public void UpdateData()
 		{
 			_invalidDataRegion = Rectangle.Intersect(VisibleCells, _invalidDataRegion);
@@ -241,19 +317,6 @@ namespace DynamicGrid
 			for (int rowIndex = minRow; rowIndex <= maxRow; rowIndex++)
 				for (int columnIndex = minColumn; columnIndex <= maxColumn; columnIndex++)
 					UpdateCellData(rowIndex, columnIndex, GetCell(rowIndex, columnIndex), ref renderingContext);
-
-			Invalidate(renderingContext.InvalidatedRect);
-		}
-
-		public void UpdateCellData(int row, int column, in Cell cell)
-		{
-			if (_columns.Count == 0) return;
-			if (row < VisibleRows.MinRow || row > VisibleRows.MaxRow) return;
-			if (column < VisibleColumns.MinColumn || column > VisibleColumns.MaxColumn) return;
-
-			CellRenderingContext renderingContext = new CellRenderingContext();
-
-			UpdateCellData(row, column, cell, ref renderingContext);
 
 			Invalidate(renderingContext.InvalidatedRect);
 		}
@@ -293,10 +356,10 @@ namespace DynamicGrid
 				Gdi32.SetForegroundColor(_displayBuffer.Hdc, foregroundColor);
 			}
 
-			if (renderingContext.CurrentAlignemnt != cell.Alignment)
+			if (renderingContext.CurrentAlignemnt != cell.TextAlignment)
 			{
-				renderingContext.CurrentAlignemnt = cell.Alignment;
-				Gdi32.SetTextAlignemnt(_displayBuffer.Hdc, cell.Alignment);
+				renderingContext.CurrentAlignemnt = cell.TextAlignment;
+				Gdi32.SetTextAlignemnt(_displayBuffer.Hdc, cell.TextAlignment);
 			}
 
 			if (renderingContext.CurrentFontStyle != cell.FontStyle)
@@ -305,11 +368,14 @@ namespace DynamicGrid
 				Gdi32.SelectObject(_displayBuffer.Hdc, _fontManager.GetHdc(cell.FontStyle));
 			}
 
-			Gdi32.PrintText(_displayBuffer.Hdc, croppedRectangle, cell.Alignment, cell.Text);
+			Gdi32.PrintText(_displayBuffer.Hdc, croppedRectangle, cell.TextAlignment, cell.Text);
 
 			renderingContext.InvalidatedRect = RectangleUtils.Union(renderingContext.InvalidatedRect, realRectangle);
 		}
 
+		/// <summary>
+		/// Calls the <see cref="InvalidateData"/> and <see cref="UpdateData"/> methods in succession.
+		/// </summary>
 		public void RefreshData()
 		{
 			InvalidateData();
@@ -581,12 +647,33 @@ namespace DynamicGrid
 			return new MouseCellEventArgs(_mouseCell.Row, _mouseCell.Column, MouseButtons, gridRect, controlRect);
 		}
 
+		/// <summary>
+		/// Raises the <see cref="CellClicked"/> event
+		/// </summary>
 		protected virtual void OnCellClicked(MouseCellEventArgs e) => CellClicked?.Invoke(this, e);
+		/// <summary>
+		/// Raises the <see cref="CellDoubleClicked"/> event
+		/// </summary>
 		protected virtual void OnCellDoubleClicked(MouseCellEventArgs e) => CellDoubleClicked?.Invoke(this, e);
+		/// <summary>
+		/// Raises the <see cref="MouseDownOverCell"/> event
+		/// </summary>
 		protected virtual void OnMouseDownOverCell(MouseCellEventArgs e) => MouseDownOverCell?.Invoke(this, e);
+		/// <summary>
+		/// Raises the <see cref="MouseUpOverCell"/> event
+		/// </summary>
 		protected virtual void OnMouseUpOverCell(MouseCellEventArgs e) => MouseUpOverCell?.Invoke(this, e);
+		/// <summary>
+		/// Raises the <see cref="MouseMovedOverGrid"/> event
+		/// </summary>
 		protected virtual void OnMouseMovedOverGrid(MouseCellEventArgs e) => MouseMovedOverGrid?.Invoke(this, e);
+		/// <summary>
+		/// Raises the <see cref="MouseEnteredGrid"/> event
+		/// </summary>
 		protected virtual void OnMouseEnteredGrid(EventArgs e) => MouseEnteredGrid?.Invoke(this, e);
+		/// <summary>
+		/// Raises the <see cref="MouseLeftGrid"/> event
+		/// </summary>
 		protected virtual void OnMouseLeftGrid(EventArgs e) => MouseLeftGrid?.Invoke(this, e);
 
 		public event EventHandler<EventArgs> ColumnsChanged;
