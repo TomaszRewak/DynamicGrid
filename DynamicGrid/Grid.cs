@@ -191,6 +191,18 @@ namespace DynamicGrid
 			_fontManager.Load(Font);
 		}
 
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				_graphics.Dispose();
+				_displayBuffer.Dispose();
+				_fontManager.Dispose();
+			}
+
+			base.Dispose(disposing);
+		}
+
 		/// <summary>
 		/// A virtual method to be overwritten by a deriving class to provides the cell content and layout for requested cell coordinates.
 		/// </summary>
@@ -296,6 +308,8 @@ namespace DynamicGrid
 		/// </remarks>
 		public void UpdateData()
 		{
+			if (IsDisposed) return;
+
 			_invalidDataRegion = Rectangle.Intersect(VisibleCells, _invalidDataRegion);
 
 			if (_invalidDataRegion.IsEmpty) return;
@@ -391,6 +405,8 @@ namespace DynamicGrid
 
 		protected override void OnPaint(PaintEventArgs e)
 		{
+			if (IsDisposed) return;
+
 			var destinationRect = e.ClipRectangle;
 
 			var leftEdge = 0;
