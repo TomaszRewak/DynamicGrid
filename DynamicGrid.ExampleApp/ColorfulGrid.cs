@@ -62,19 +62,11 @@ namespace DynamicGrid.ExampleApp
 				_stopwatchCounter = 0;
 			}
 
-			//InvalidateData();
-			//InvalidateColumnData(7);
-			//InvalidateColumn(4);
-			//InvalidateRow(5);
-			//InvalidateRow(7);
 			InvalidateCellData(-10, 3);
 			InvalidateCellData(10, 3);
 			InvalidateCellData(15, 2);
-			//InvalidateColumn(Columns.ElementAt(3));
 			UpdateData();
 			Update();
-
-			//VerticalOffset += 1;
 		}
 	}
 }
