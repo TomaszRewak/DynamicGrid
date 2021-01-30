@@ -31,6 +31,7 @@ namespace DynamicGrid
 		private bool _isMouseDownOverGrid;
 
 		private readonly List<ColumnPlacement> _columns = new();
+		private readonly List<SectorPlacement> _sectors = new();
 		/// <summary>
 		/// Gets or sets column widths. The provided collection is also being used to determine the number of columns to be displayed.
 		/// </summary>
@@ -39,7 +40,7 @@ namespace DynamicGrid
 			get => _columns.Select(c => c.Width);
 			set
 			{
-				ColumnPlacement.CalculatePlacement(value, Width, _columns);
+				ColumnPlacementResolver.CalculatePlacement(value, Width, _columns, _sectors);
 
 				UpdateVisibleColumns();
 				ResizeBuffers();
@@ -126,12 +127,12 @@ namespace DynamicGrid
 		{
 			var oldMinColumn = VisibleColumns.MinColumn;
 			var newMinColumn = 0;
-			while (newMinColumn < _columns.Count - 1 && _columns[newMinColumn].RealOffsetPlusWidth <= HorizontalOffset)
+			while (newMinColumn < _columns.Count - 1 && _columns[newMinColumn].GlobalOffsetPlusWidth <= HorizontalOffset)
 				newMinColumn++;
 
 			var oldMaxColumn = VisibleColumns.MaxColumn;
 			var newMaxColumn = newMinColumn;
-			while (newMaxColumn < _columns.Count - 1 && _columns[newMaxColumn].RealOffsetPlusWidth < HorizontalOffset + Width)
+			while (newMaxColumn < _columns.Count - 1 && _columns[newMaxColumn].GlobalOffsetPlusWidth < HorizontalOffset + Width)
 				newMaxColumn++;
 
 			VisibleColumns = (newMinColumn, newMaxColumn);
@@ -139,13 +140,13 @@ namespace DynamicGrid
 			for (int c = newMinColumn; c <= newMaxColumn && c < oldMinColumn; c++)
 			{
 				_cellBuffer.ClearColumn(_cellBuffer.CropRow(c));
-				_displayBuffer.ClearColumn(_columns[c].CroppedOffset, _columns[c].Width, BackColor);
+				_displayBuffer.ClearColumn(_columns[c].SectorOffset + _sectors[_columns[c].Sector].Offset, _columns[c].Width, BackColor);
 				InvalidateColumnData(c);
 			}
 			for (int c = newMaxColumn; c >= newMinColumn && c > oldMaxColumn; c--)
 			{
 				_cellBuffer.ClearColumn(_cellBuffer.CropRow(c));
-				_displayBuffer.ClearColumn(_columns[c].CroppedOffset, _columns[c].Width, BackColor);
+				_displayBuffer.ClearColumn(_columns[c].SectorOffset + _sectors[_columns[c].Sector].Offset, _columns[c].Width, BackColor);
 				InvalidateColumnData(c);
 			}
 		}
@@ -218,10 +219,10 @@ namespace DynamicGrid
 			var rows = Height / RowHeight + 2;
 
 			_cellBuffer.Size = new Size(
-				_columns.Max(p => p.CroppedIndex + 1),
+				_columns.Max(p => p.SectorIndex + 1),
 				rows);
 			_displayBuffer.Size = new Size(
-				_columns.Max(p => p.CroppedOffset + p.Width),
+				_sectors.Max(p => p.Offset + p.Width),
 				rows * RowHeight);
 
 			InvalidateBuffers();
@@ -337,7 +338,7 @@ namespace DynamicGrid
 		private void UpdateCellData(int rowIndex, int columnIndex, in Cell cell, ref CellRenderingContext renderingContext)
 		{
 			var croppedRowIndex = _cellBuffer.CropRow(rowIndex);
-			var croppedColumnIndex = _columns[columnIndex].CroppedIndex;
+			var croppedColumnIndex = _columns[columnIndex].SectorIndex;
 			var changed = _cellBuffer.TrySet(croppedRowIndex, croppedColumnIndex, in cell);
 
 			if (!changed) return;
@@ -346,10 +347,10 @@ namespace DynamicGrid
 				_columns[columnIndex].Width - 1,
 				RowHeight - 1);
 			var realPosition = new Point(
-				_columns[columnIndex].RealOffset - HorizontalOffset,
+				_columns[columnIndex].GlobalOffset - HorizontalOffset,
 				RowHeight * rowIndex - VerticalOffset);
 			var croppedPosition = new Point(
-				_columns[columnIndex].CroppedOffset,
+				_columns[columnIndex].SectorOffset + _sectors[_columns[columnIndex].Sector].Offset,
 				RowHeight * croppedRowIndex);
 			var realRectangle = new Rectangle(realPosition, size);
 			var croppedRectangle = new Rectangle(croppedPosition, size);
@@ -400,7 +401,8 @@ namespace DynamicGrid
 			base.OnSizeChanged(e);
 
 			UpdateVisibleRows();
-			Columns = Columns;
+
+			Columns = Columns.ToList();
 		}
 
 		protected override void OnPaint(PaintEventArgs e)
@@ -412,8 +414,15 @@ namespace DynamicGrid
 			var leftEdge = 0;
 			var rightEdge = _columns.Count == 0
 				? 0
-				: _columns[_columns.Count - 1].RealOffsetPlusWidth;
+				: _columns[^1].GlobalOffsetPlusWidth;
 
+			// Filling in the region left to the grid
+			// ###|---|---|---|---|...
+			// ###|---|---|---|---|...
+			// ###|---|---|---|---|...
+			// ###|---|---|---|---|...
+			// ###|---|---|---|---|...
+			// ###|---|---|---|---|...
 			if (destinationRect.Left + HorizontalOffset < leftEdge)
 			{
 				var destination = destinationRect.Location;
@@ -431,6 +440,13 @@ namespace DynamicGrid
 					destinationRect.Height);
 			}
 
+			// Filling in the region right to the grid
+			// ...|---|---|---|---|###
+			// ...|---|---|---|---|###
+			// ...|---|---|---|---|###
+			// ...|---|---|---|---|###
+			// ...|---|---|---|---|###
+			// ...|---|---|---|---|###
 			if (destinationRect.Right + HorizontalOffset >= rightEdge)
 			{
 				var destination = new Point(
@@ -454,69 +470,96 @@ namespace DynamicGrid
 				return;
 
 			var minRow = VisibleRows.MinRow;
-			var minColumn = VisibleColumns.MinColumn;
+			var (minColumn, maxColumn) = VisibleColumns;
 
 			var sourceRect = new Rectangle(
-				_columns[minColumn].CroppedOffset + destinationRect.Left + HorizontalOffset - _columns[minColumn].RealOffset,
+				_columns[minColumn].SectorOffset + _sectors[_columns[minColumn].Sector].Offset + destinationRect.Left + HorizontalOffset - _columns[minColumn].GlobalOffset,
 				_cellBuffer.CropRow(minRow) * RowHeight + destinationRect.Top + VerticalOffset - minRow * RowHeight,
 				destinationRect.Width,
 				destinationRect.Height);
-			var bufferSize = new Size(
-				_columns[minColumn].CroppedRowWidth,
+			var sectorRect = new Rectangle(
+				_sectors[_columns[minColumn].Sector].Offset,
+				0,
+				_sectors[_columns[minColumn].Sector].Width,
 				_displayBuffer.Size.Height);
 
-			if (sourceRect.Left < bufferSize.Width && sourceRect.Top < bufferSize.Height)
+			// Drawing the top left corner of the grid using the bottom right corner of the buffer
+			// ...|---|---|..|---|---|...     ...|###|###|---|---|...
+			// ...|---|---|..|---|---|...     ...|###|###|---|---|...
+			// ...|---|---|..|###|###|...  >  ...|###|###|---|---|...
+			// ...|---|---|..|###|###|...     ...|---|---|---|---|...
+			// ...|---|---|..|###|###|...     ...|---|---|---|---|...
+			if (sourceRect.Left < sectorRect.Right && sourceRect.Top < sectorRect.Bottom)
 			{
 				var source = sourceRect.Location;
 				var destination = destinationRect.Location;
 				var size = new Size(
-					Math.Min(destinationRect.Width, bufferSize.Width - sourceRect.Left),
-					Math.Min(destinationRect.Height, bufferSize.Height - sourceRect.Top));
+					Math.Min(destinationRect.Width, sectorRect.Right - sourceRect.Left),
+					Math.Min(destinationRect.Height, sectorRect.Bottom - sourceRect.Top));
 
 				Gdi32.Copy(_displayBuffer.Hdc, source, _graphicsHdc, destination, size);
 			}
 
-			if (sourceRect.Right > bufferSize.Width && sourceRect.Top < bufferSize.Height)
+			// Drawing the top right corner of the grid using the bottom left corner of the buffer
+			// ...|---|---|..|---|---|...     ...|---|---|###|###|...
+			// ...|---|---|..|---|---|...     ...|---|---|###|###|...
+			// ...|###|###|..|---|---|...  >  ...|---|---|###|###|...
+			// ...|###|###|..|---|---|...     ...|---|---|---|---|...
+			// ...|###|###|..|---|---|...     ...|---|---|---|---|...
+			if (sourceRect.Right > sectorRect.Right && sourceRect.Top < sectorRect.Bottom)
 			{
 				var source = new Point(
-					Math.Max(0, sourceRect.Left - bufferSize.Width),
+					_sectors[_columns[maxColumn].Sector].Offset + Math.Max(0, sourceRect.Left - sectorRect.Right),
 					sourceRect.Top);
 				var destination = new Point(
-					destinationRect.Left + Math.Max(0, bufferSize.Width - sourceRect.Left),
+					destinationRect.Left + Math.Max(0, sectorRect.Right - sourceRect.Left),
 					destinationRect.Top);
 				var size = new Size(
-					destinationRect.Width - Math.Max(0, bufferSize.Width - sourceRect.Left),
-					Math.Min(destinationRect.Height, bufferSize.Height - sourceRect.Top));
+					destinationRect.Width - Math.Max(0, sectorRect.Right - sourceRect.Left),
+					Math.Min(destinationRect.Height, sectorRect.Bottom - sourceRect.Top));
 
 				Gdi32.Copy(_displayBuffer.Hdc, source, _graphicsHdc, destination, size);
 			}
 
-			if (sourceRect.Left < bufferSize.Width && sourceRect.Bottom > bufferSize.Height)
+			// Drawing the bottom left corner of the grid using the top right corner of the buffer
+			// ...|---|---|..|###|###|...     ...|---|---|---|---|...
+			// ...|---|---|..|###|###|...     ...|---|---|---|---|...
+			// ...|---|---|..|---|---|...  >  ...|---|---|---|---|...
+			// ...|---|---|..|---|---|...     ...|###|###|---|---|...
+			// ...|---|---|..|---|---|...     ...|###|###|---|---|...
+			if (sourceRect.Left < sectorRect.Right && sourceRect.Bottom > sectorRect.Bottom)
 			{
 				var source = new Point(
 					sourceRect.Left,
-					Math.Max(0, sourceRect.Top - bufferSize.Height));
+					Math.Max(0, sourceRect.Top - sectorRect.Bottom));
 				var destination = new Point(
 					destinationRect.Left,
-					destinationRect.Top + Math.Max(0, bufferSize.Height - sourceRect.Top));
+					destinationRect.Top + Math.Max(0, sectorRect.Bottom - sourceRect.Top));
 				var size = new Size(
-					Math.Min(destinationRect.Width, bufferSize.Width - sourceRect.Left),
-					destinationRect.Height - Math.Max(0, bufferSize.Height - sourceRect.Top));
+					Math.Min(destinationRect.Width, sectorRect.Right - sourceRect.Left),
+					destinationRect.Height - Math.Max(0, sectorRect.Bottom - sourceRect.Top));
 
 				Gdi32.Copy(_displayBuffer.Hdc, source, _graphicsHdc, destination, size);
 			}
 
-			if (sourceRect.Right > bufferSize.Width && sourceRect.Bottom > bufferSize.Height)
+
+			// Drawing the bottom right corner of the grid using the top left corner of the buffer
+			// ...|###|###|..|---|---|...     ...|---|---|---|---|...
+			// ...|###|###|..|---|---|...     ...|---|---|---|---|...
+			// ...|---|---|..|---|---|...  >  ...|---|---|---|---|...
+			// ...|---|---|..|---|---|...     ...|---|---|###|###|...
+			// ...|---|---|..|---|---|...     ...|---|---|###|###|...
+			if (sourceRect.Right > sectorRect.Right && sourceRect.Bottom > sectorRect.Bottom)
 			{
 				var source = new Point(
-					Math.Max(0, sourceRect.Left - bufferSize.Width),
-					Math.Max(0, sourceRect.Top - bufferSize.Height));
+					_sectors[_columns[maxColumn].Sector].Offset + Math.Max(0, sourceRect.Left - sectorRect.Right),
+					Math.Max(0, sourceRect.Top - sectorRect.Bottom));
 				var destination = new Point(
-					destinationRect.Left + Math.Max(0, bufferSize.Width - sourceRect.Left),
-					destinationRect.Top + Math.Max(0, bufferSize.Height - sourceRect.Top));
+					destinationRect.Left + Math.Max(0, sectorRect.Right - sourceRect.Left),
+					destinationRect.Top + Math.Max(0, sectorRect.Bottom - sourceRect.Top));
 				var size = new Size(
-					destinationRect.Width - Math.Max(0, bufferSize.Width - sourceRect.Left),
-					destinationRect.Height - Math.Max(0, bufferSize.Height - sourceRect.Top));
+					destinationRect.Width - Math.Max(0, sectorRect.Right - sourceRect.Left),
+					destinationRect.Height - Math.Max(0, sectorRect.Bottom - sourceRect.Top));
 
 				Gdi32.Copy(_displayBuffer.Hdc, source, _graphicsHdc, destination, size);
 			}
@@ -619,13 +662,13 @@ namespace DynamicGrid
 
 			_mouseCell = (
 				y >= 0 ? y / RowHeight : (y - RowHeight + 1) / RowHeight,
-				ColumnPlacement.GetColumnIndex(_columns, x, _mouseCell.Column));
+				ColumnPlacementResolver.GetColumnIndex(_columns, x, _mouseCell.Column));
 			_isMouseOverGrid =
 				_isMouseDownOverGrid ||
 				_isMouseOverControl &&
 				_columns.Count > 0 &&
 				x >= 0 &&
-				x < _columns[_columns.Count - 1].RealOffsetPlusWidth;
+				x < _columns[_columns.Count - 1].GlobalOffsetPlusWidth;
 
 			var mouseCellChanged = _mouseCell != oldMouseCell;
 			var isMouseOverGridChanged = _isMouseOverGrid != oldIsMouseOverGrid;
@@ -648,7 +691,7 @@ namespace DynamicGrid
 		private MouseCellEventArgs CreateMouseCellEventArgs()
 		{
 			var gridRect = new Rectangle(
-				_columns[_mouseCell.Column].RealOffset,
+				_columns[_mouseCell.Column].GlobalOffset,
 				_mouseCell.Row * RowHeight,
 				_columns[_mouseCell.Column].Width,
 				RowHeight);

@@ -1,41 +1,55 @@
 ﻿using DynamicGrid.Utils;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DynamicGrid.Data
 {
+	internal readonly struct SectorPlacement
+	{
+		public readonly int Width;
+		public readonly int Offset;
+
+		public SectorPlacement(int width, int offset)
+		{
+			Width = width;
+			Offset = offset;
+		}
+	}
+
 	internal readonly struct ColumnPlacement
 	{
-		[ThreadStatic]
-		private static readonly List<int> _columnsWidths = new List<int>();
-
-		public readonly int CroppedIndex;
-		public readonly int CroppedOffset;
-		public readonly int RealOffset;
 		public readonly int Width;
-		public readonly int CroppedRowWidth;
+		public readonly int GlobalOffset;
+		public readonly int Sector;
+		public readonly int SectorOffset;
+		public readonly int SectorIndex;
 
-		public int RealOffsetPlusWidth => RealOffset + Width;
+		public int GlobalOffsetPlusWidth => GlobalOffset + Width;
+		public int SectorOffsetPlusWidth => SectorOffset + Width;
 
-		public ColumnPlacement(int croppedIndex, int croppedOffset, int realOffset, int width, int croppedRowWidth)
+		public ColumnPlacement(int width, int globalOffset, int sector, int sectorOffset, int sectorIndex)
 		{
-			CroppedIndex = croppedIndex;
-			CroppedOffset = croppedOffset;
-			RealOffset = realOffset;
 			Width = width;
-			CroppedRowWidth = croppedRowWidth;
+			GlobalOffset = globalOffset;
+			Sector = sector;
+			SectorOffset = sectorOffset;
+			SectorIndex = sectorIndex;
 		}
+	}
 
+	internal static class ColumnPlacementResolver
+	{
 		public static int GetColumnIndex(List<ColumnPlacement> columns, int offset, int hint)
 		{
 			if (columns.Count == 0) return 0;
 
 			hint = MathUtils.Clip(0, hint, columns.Count - 1);
 
-			if (offset >= columns[hint].RealOffset)
+			if (offset >= columns[hint].GlobalOffset)
 			{
 				for (int c = hint; c < columns.Count; c++)
-					if (offset < columns[c].RealOffsetPlusWidth)
+					if (offset < columns[c].GlobalOffsetPlusWidth)
 						return c;
 
 				return columns.Count - 1;
@@ -43,76 +57,65 @@ namespace DynamicGrid.Data
 			else
 			{
 				for (int c = hint - 1; c >= 0; c--)
-					if (offset >= columns[c].RealOffset)
+					if (offset >= columns[c].GlobalOffset)
 						return c;
 
 				return 0;
 			}
 		}
 
-		public static void CalculatePlacement(IEnumerable<int> columnWidths, int containerWidth, List<ColumnPlacement> columnPlacement)
+		public static void CalculatePlacement(IEnumerable<int> columnWidths, int containerWidth, List<ColumnPlacement> columnPlacement, List<SectorPlacement> sectorPlacement)
 		{
-			_columnsWidths.Clear();
-			foreach (var width in columnWidths)
-				_columnsWidths.Add(width);
+			containerWidth = Math.Max(containerWidth, 1);
 
 			columnPlacement.Clear();
+			sectorPlacement.Clear();
 
-			var croppedIndex = 0;
-			var croppedOffset = 0;
-			var realOffset = 0;
-			var croppedRowWidth = 0;
-			var maxVisibleColumnsWidth = CalculateMaxVisibleColumnsWidth(_columnsWidths, containerWidth);
+			var columnWidthsEnumerator = columnWidths.GetEnumerator();
+			if (!columnWidthsEnumerator.MoveNext()) return;
 
-			for (int realIndex = 0; realIndex < _columnsWidths.Count; realIndex++)
-			{
-				var width = _columnsWidths[realIndex];
+			columnPlacement.Add(new ColumnPlacement(columnWidthsEnumerator.Current, 0, 0, 0, 0));
 
-				if (croppedOffset + width > maxVisibleColumnsWidth)
-				{
-					croppedIndex = 0;
-					croppedOffset = 0;
-					croppedRowWidth = 0;
-				}
-
-				if (croppedIndex == 0)
-				{
-					for (int inRowIndex = realIndex; inRowIndex < _columnsWidths.Count; inRowIndex++)
-					{
-						if (croppedRowWidth + _columnsWidths[inRowIndex] <= maxVisibleColumnsWidth)
-							croppedRowWidth += _columnsWidths[inRowIndex];
-						else
-							break;
-					}
-				}
-
-				columnPlacement.Add(new ColumnPlacement(croppedIndex, croppedOffset, realOffset, width, croppedRowWidth));
-
-				croppedIndex++;
-				croppedOffset += width;
-				realOffset += width;
-			}
-		}
-
-		private static int CalculateMaxVisibleColumnsWidth(List<int> columnWidths, int containerWidth)
-		{
+			var sectorOffset = 0;
 			var lastVisibleColumn = 0;
-			var visibleColumnsWidth = 0;
-			var maxVisibleColumnsWidth = 0;
 
-			for (int column = 0; column < columnWidths.Count; column++)
+			while (columnWidthsEnumerator.MoveNext())
 			{
-				while (lastVisibleColumn < column && visibleColumnsWidth - columnWidths[lastVisibleColumn] >= containerWidth)
+				var width = columnWidthsEnumerator.Current;
+
+				if (columnPlacement[^1].SectorOffsetPlusWidth + sectorOffset >= containerWidth)
 				{
-					visibleColumnsWidth -= columnWidths[lastVisibleColumn];
+					sectorPlacement.Add(new SectorPlacement(columnPlacement[^1].SectorOffsetPlusWidth, sectorOffset));
+					columnPlacement.Add(new ColumnPlacement(width, columnPlacement[^1].GlobalOffsetPlusWidth, sectorPlacement.Count, 0, 0));
+					sectorOffset = 0;
+				}
+				else
+				{
+					columnPlacement.Add(new ColumnPlacement(width, columnPlacement[^1].GlobalOffsetPlusWidth, sectorPlacement.Count, columnPlacement[^1].SectorOffsetPlusWidth, columnPlacement[^1].SectorIndex + 1));
+				}
+
+				while (columnPlacement[^1].GlobalOffset - columnPlacement[lastVisibleColumn].GlobalOffsetPlusWidth >= containerWidth)
+				{
 					lastVisibleColumn++;
 				}
 
-				visibleColumnsWidth += columnWidths[column];
-				maxVisibleColumnsWidth = Math.Max(maxVisibleColumnsWidth, visibleColumnsWidth);
+				if (columnPlacement[lastVisibleColumn].Sector < columnPlacement[^1].Sector)
+				{
+					sectorOffset = Math.Min(sectorOffset, columnPlacement[lastVisibleColumn].SectorOffset + sectorPlacement[^1].Offset - columnPlacement[^1].SectorOffsetPlusWidth);
+				}
 			}
 
-			return maxVisibleColumnsWidth;
+			sectorPlacement.Add(new SectorPlacement(columnPlacement[^1].SectorOffsetPlusWidth, sectorOffset));
+
+			NormalizeSectorPlacement(sectorPlacement);
+		}
+
+		private static void NormalizeSectorPlacement(List<SectorPlacement> sectorPlacement)
+		{
+			var minOffset = sectorPlacement.Min(s => s.Offset);
+
+			for (var i = 0; i < sectorPlacement.Count; i++)
+				sectorPlacement[i] = new SectorPlacement(sectorPlacement[i].Width, sectorPlacement[i].Offset - minOffset);
 		}
 	}
 }
