@@ -12,6 +12,10 @@ DynamicGrid is a high performance WinForms grid rendering engine. It's key featu
 - The grid strives for memory locality, only allocating buffers of a size required to store the visible date.
 - The grid provides cell-based mouse interaction events.
 
+<p align="center">
+  <img src="https://github.com//TomaszRewak/DynamicGrid/blob/master/About/example.gif?raw=true" width=600/>
+</p>
+
 Limitations of the DynamicGrid:
 - The row height must be the same for all rows.
 - The cell content and layout options are limited to the following properties: `Text`, `TextAlignment`, `FontStyle`, `BackgroundColor`, `ForegroundColor`.
