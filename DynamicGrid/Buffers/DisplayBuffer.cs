@@ -10,7 +10,6 @@ namespace DynamicGrid.Buffers
 
 		private BufferedGraphics _buffer;
 		private IntPtr _bufferHdc;
-		private Color _backgroundColor;
 
 		public IntPtr Hdc => _bufferHdc;
 
@@ -36,9 +35,6 @@ namespace DynamicGrid.Buffers
 
 				_buffer = BufferedGraphicsManager.Current.Allocate(_parentHdc, new Rectangle(new Point(), Capacity));
 				_bufferHdc = _buffer.Graphics.GetHdc();
-
-				Gdi32.SetBackgroundColor(_bufferHdc, _backgroundColor);
-				Gdi32.Fill(_bufferHdc, new Rectangle(Point.Empty, Capacity));
 			}
 		}
 
@@ -60,16 +56,12 @@ namespace DynamicGrid.Buffers
 
 		public void Clear(Color color)
 		{
-			_backgroundColor = color;
-
 			Gdi32.SetBackgroundColor(_bufferHdc, color);
 			Gdi32.Fill(_bufferHdc, new Rectangle(Point.Empty, Size));
 		}
 
 		public void ClearColumn(int offset, int width, Color color)
 		{
-			_backgroundColor = color;
-
 			Gdi32.SetBackgroundColor(_bufferHdc, color);
 			Gdi32.Fill(_bufferHdc, new Rectangle(offset, 0, width, Size.Height));
 		}

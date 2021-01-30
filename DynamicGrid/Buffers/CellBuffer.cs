@@ -27,28 +27,28 @@ namespace DynamicGrid.Buffers
 			}
 		}
 
-		public void Clear(Color color)
+		public void Clear()
 		{
 			for (var y = 0; y < Size.Height; y++)
 				for (var x = 0; x < Size.Width; x++)
-					_cells[y, x] = new Cell(backgroundColor: color);
+					_cells[y, x] = Cell.Empty;
 		}
 
-		public void ClearColumn(int index, Color color)
+		public void ClearColumn(int index)
 		{
 			if (index < 0) return;
 			if (index >= Size.Width) return;
 
 			for (var y = 0; y < Size.Height; y++)
-				_cells[y, index] = new Cell(backgroundColor: color);
+				_cells[y, index] = Cell.Empty;
 		}
 
 		public bool TrySet(int row, int column, in Cell value)
 		{
 			Debug.Assert(column >= 0);
-			Debug.Assert(column < Capacity.Width);
+			Debug.Assert(column < Size.Width);
 			Debug.Assert(row >= 0);
-			Debug.Assert(row < Capacity.Height);
+			Debug.Assert(row < Size.Height);
 
 			ref var cell = ref _cells[row, column];
 			var changed = cell != value;
