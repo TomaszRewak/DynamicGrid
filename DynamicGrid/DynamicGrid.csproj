@@ -5,6 +5,14 @@
 		<TargetFramework>net5.0-windows</TargetFramework>
 		<UseWindowsForms>true</UseWindowsForms>
 		<LangVersion>9.0</LangVersion>
+		<Description>DynamicGrid is a high performance WinForms grid rendering engine.</Description>
+		<Copyright>Tomasz Rewak</Copyright>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/TomaszRewak/DynamicGrid</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/TomaszRewak/DynamicGrid</RepositoryUrl>
+		<PackageTags>WinForms, grid, control, high performance</PackageTags>
+		<PackageReleaseNotes>1.0.0 - First release</PackageReleaseNotes>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	</PropertyGroup>
 
 </Project>
