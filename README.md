@@ -1,7 +1,7 @@
 # DynamicGrid
 
 DynamicGrid is a high-performance WinForms grid rendering engine. Its key features are:
-- Rows and columns out of the drawing area and not being render nor their data being fetched.
+- Rows and columns out of the drawing area are not being render nor their data being fetched.
 - The grid works in a virtual mode - only requesting data for visible cells allowing users to store rows in a collection of choice (also making it possible to implement infinite grids if required).
 - The control uses double buffering so that the `OnPaint` methods only calls the `BitBlt` function to flush the prerendered state on the screen (which allows for smooth scrolling).
 - When (due to scrolling) new rows or columns come into the view - only those new rows/columns are invalidated and rendered (thanks to a circular display buffer used by the control).
