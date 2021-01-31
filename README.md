@@ -35,7 +35,7 @@ After the package is installed, create your custom grid control by inheriting th
 ```csharp
 class MyGrid : DynamicGrid.Grid
 {
-	...
+  ...
 }
 ```
 
@@ -44,15 +44,15 @@ The next step will be to set the column sizes (and their number by a proxy) and 
 ```csharp
 class MyGrid : Grid
 {
-	public MyGrid()
-	{
-		Columns = new[] { 150, 150, 150, 150 };
-	}
+  public MyGrid()
+  {
+    Columns = new[] { 150, 150, 150, 150 };
+  }
 
-	protected override Cell GetCell(int rowIndex, int columnIndex)
-	{
-		return new Cell($"{rowIndex} {columnIndex}");
-	}
+  protected override Cell GetCell(int rowIndex, int columnIndex)
+  {
+    return new Cell($"{rowIndex} {columnIndex}");
+  }
 }
 ```
 
@@ -67,14 +67,14 @@ class MyGrid : Grid
 {
   ...
 
-	public void UpdateRow(int rowIndex, Row row)
-	{
-		_rows[rowIndex] = row;
+  public void UpdateRow(int rowIndex, Row row)
+  {
+    _rows[rowIndex] = row;
 
-		InvalidateRowData(rowIndex);
-		UpdateData();
+    InvalidateRowData(rowIndex);
+    UpdateData();
     Update(); // optional
-	}
+  }
 }
 ```
 
