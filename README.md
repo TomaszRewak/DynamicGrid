@@ -22,6 +22,8 @@ Limitations of the DynamicGrid:
 - The DynamicGrid is only a grid rendering engine and does not provide any column management functionalities. It also doesn't allow for displaying column headers. This can be overcome by using a `DataGridView` control placed just above our grid (to be used only for displaying the headers).
 - The Dynamic grid, out of the box, does not provide any text input nor cell selection functionalities. If required, those must be implemented in derived classes based on individual requirements (which, on the other hand, allows for a greater flexibility).
 
+More details about this lib can be also found in [this YouTube video](https://youtu.be/M_pu9_LUfXo).
+
 ## Setup and basic usage
 
 First step is to install the package in the project:
